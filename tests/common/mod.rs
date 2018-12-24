@@ -1,4 +1,2 @@
-/*
-* Helper methods for testing the codebase.
-*
-*/
+/// Helper methods for testing the codebase.
+///

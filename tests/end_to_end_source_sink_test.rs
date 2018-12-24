@@ -1,3 +1,2 @@
-/*
-* First walking skeleton for testing
-*/
+/// First walking skeleton for testing
+///
