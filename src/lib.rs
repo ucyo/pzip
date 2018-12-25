@@ -3,44 +3,41 @@
 /// # pzip
 /// A compression library for floating point data
 
-#[derive(Debug)]
-pub struct Source {
-    source: String,
+use std::marker::PhantomData;
+use std::io::{self};
+use std::fs;
+use byteorder::{self, ReadBytesExt, LittleEndian};
+
+pub struct Source<T> {
+    file: fs::File,
+    phantom: PhantomData<T>
 }
 
-#[derive(Debug)]
-pub struct Sink {
-    sink: String,
-}
+impl<T> Source<T> {
 
-impl Source {
-
-    pub fn new(source: String) -> Source {
-        Source { source }
-    }
-
-    pub fn memory_read(&self) -> Result<(), String>{
-        panic!("Reading into memory did not work.")
-    }
-
-    pub fn write(&self, sink: &Sink) -> Result<(), String>{
-        panic!("Writing into sink did not work.")
+    pub fn new(filename: String) -> Result<Source<T>, io::Error> {
+        let file = fs::File::open(filename)?;
+        Ok(Source{file, phantom: PhantomData})
     }
 }
 
-impl Sink {
-
-    pub fn new(sink: String) -> Sink {
-        Sink { sink }
+impl Source<u8> {
+    pub fn get(&mut self) -> u8 {
+        let val = self.file.read_u8().unwrap();
+        val
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;  // add lib into scope
-    #[test]
-    #[ignore]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
+impl Source<f32> {
+    pub fn get(&mut self) -> f32 {
+        let val = self.file.read_f32::<LittleEndian>().unwrap();
+        val
+    }
+}
+
+impl Source<f64> {
+    pub fn get(&mut self) -> f64 {
+        let val = self.file.read_f64::<LittleEndian>().unwrap();
+        val
     }
 }
