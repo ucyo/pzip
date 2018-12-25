@@ -27,3 +27,18 @@ fn read_first_f64_from_file() {
     let first = source.get();
     assert_eq!(first, 2.318024477526355e+15_f64)
 }
+
+
+#[test]
+fn read_f64_from_file() {
+    let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+
+    let mut source: pzip::Source<f64> = pzip::Source::new(filename).expect("Error");
+    source.load().expect("Error loading the data");
+
+    let expected = [2.318024477526355e+15_f64, 2.2897421178755255e+15_f64,
+                    2.262535647532541e+15_f64];
+    for i in 0..3 {
+        assert_eq!(source.ix(i), &expected[i]);
+    }
+}
