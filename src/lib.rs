@@ -2,10 +2,19 @@
 ///
 /// # pzip
 /// A compression library for floating point data
+///
+/// # Source
+/// The source gives information/reads input file to be compressed.
+///
+/// # Sink
+/// The sink struct gives information/writes to output file.
 
 use std::io::{self, Read};
 use std::fs;
-use byteorder::{self, ReadBytesExt, ByteOrder, LittleEndian};
+use std::marker::PhantomData;
+use std::io::prelude::*;
+use byteorder::{self, WriteBytesExt, ReadBytesExt, ByteOrder, LittleEndian};
+
 
 pub struct Source<T> {
     file: fs::File,
@@ -14,6 +23,7 @@ pub struct Source<T> {
 
 impl<T> Source<T> {
 
+    // REFACTOR: Change filename to fs::path::Path type
     pub fn new(filename: String) -> Result<Source<T>, io::Error> {
         let file = fs::File::open(filename)?;
         let data : Vec<T> = Vec::new();
@@ -77,5 +87,32 @@ impl Source<f64> {
         LittleEndian::read_f64_into_unchecked(&bytes, &mut data);
         self.data = data;
         Ok(self.data.len())
+    }
+}
+
+pub struct Sink<T> {
+    file : fs::File,
+    data : PhantomData<T>
+}
+
+
+impl<T> Sink<T> {
+
+    // REFACTOR: Change filename to fs::path::Path type
+    pub fn new(filename: String) -> Result<Sink<T>, io::Error> {
+        let file = fs::File::create(filename)?;
+        Ok(Sink{file, data: PhantomData})
+    }
+
+    pub fn flush(&mut self) -> Result<(), io::Error>{
+        self.file.flush()?;
+        Ok(())
+    }
+}
+
+impl Sink<u8> {
+    pub fn put(&mut self, value: u8) -> Result<(), io::Error> {
+        self.file.write_u8(value).expect("Wrong writing value");
+        Ok(())
     }
 }
