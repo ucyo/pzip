@@ -30,6 +30,14 @@ impl Source<u8> {
         let val = self.file.read_u8().unwrap();
         val
     }
+
+    pub fn load(&mut self) -> Result<usize, io::Error>{
+        let mut bytes : Vec<u8> = Vec::new();
+        let size = self.file.read_to_end(&mut bytes)?;
+
+        self.data = bytes;
+        Ok(size)
+    }
 }
 
 impl Source<f32> {
