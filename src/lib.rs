@@ -37,6 +37,19 @@ impl Source<f32> {
         let val = self.file.read_f32::<LittleEndian>().unwrap();
         val
     }
+
+    pub fn load(&mut self) -> Result<usize, io::Error>{
+        let mut bytes : Vec<u8> = Vec::new();
+        let size = self.file.read_to_end(&mut bytes)?;
+
+        if size % 4 != 0 {
+            panic!("Can not be read into f64");
+        }
+        let mut data = vec![0_f32; size/4];
+        LittleEndian::read_f32_into_unchecked(&bytes, &mut data);
+        self.data = data;
+        Ok(self.data.len())
+    }
 }
 
 impl Source<f64> {
@@ -55,7 +68,6 @@ impl Source<f64> {
         let mut data = vec![0_f64; size/8];
         LittleEndian::read_f64_into_unchecked(&bytes, &mut data);
         self.data = data;
-
         Ok(self.data.len())
     }
 }

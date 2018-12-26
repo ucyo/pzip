@@ -42,3 +42,18 @@ fn read_f64_from_file() {
         assert_eq!(source.ix(i), &expected[i]);
     }
 }
+
+#[test]
+fn read_f32_from_file() {
+    let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+
+    let mut source: pzip::Source<f32> = pzip::Source::new(filename).expect("Error");
+    source.load().expect("Error loading the data");
+
+    let expected = [160.57284545898_f32,
+                    160.47055053711_f32,
+                    160.36930847168_f32];
+    for i in 0..3 {
+        assert_eq!(source.ix(i), &expected[i]);
+    }
+}
