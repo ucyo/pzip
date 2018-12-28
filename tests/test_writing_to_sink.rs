@@ -52,9 +52,10 @@ fn write_f32_to_file() {
     assert_eq!(v, value)
 }
 
+#[test]
 fn write_f32s_to_file() {
     let filename = String::from("/tmp/output.raw");
-    let values = [213.241_f32, 8392.9482_f32, 94.32_f32];
+    let values = [213.236_f32, 839.9482_f32, 94.32_f32];
 
     let mut sink: pzip::Sink<f32> = pzip::Sink::new(&filename).expect("Errpr");
     sink.put_all(&values).expect("Writing unsuccessfull");
@@ -86,20 +87,20 @@ fn write_f64_to_file() {
     assert_eq!(v, value)
 }
 
-// #[test]
-// fn write_f64s_to_file() {
-//     let filename = String::from("/tmp/output.raw");
-//     let values = [324234.423234_f64, 9291.822_f64, 1.23131_f64];
+#[test]
+fn write_f64s_to_file() {
+    let filename = String::from("/tmp/output.raw");
+    let values = [324234.423234_f64, 9291.822_f64, 1.23131_f64];
 
-//     let mut sink: pzip::Sink<f64> = pzip::Sink::new(&filename).expect("Error");
-//     sink.put_all(&values).expect("Writing unsuccessfull");
-//     sink.flush().expect("Writing unsuccessfull");
+    let mut sink: pzip::Sink<f64> = pzip::Sink::new(&filename).expect("Error");
+    sink.put_all(&values).expect("Writing unsuccessfull");
+    sink.flush().expect("Writing unsuccessfull");
 
-//     let mut source: pzip::Source<f64> = pzip::Source::new(&filename).expect("Error");
-//     source.load().expect("Load unsuccessfull");
+    let mut source: pzip::Source<f64> = pzip::Source::new(&filename).expect("Error");
+    source.load().expect("Load unsuccessfull");
 
-//     for i in 0..3 {
-//         assert_eq!(source.ix(i), &values[i])
-//     }
-//     std::fs::remove_file(&filename).expect("Error");
-// }
+    for i in 0..3 {
+        assert_eq!(source.ix(i), &values[i])
+    }
+    std::fs::remove_file(&filename).expect("Error");
+}

@@ -132,6 +132,14 @@ impl Sink<f32> {
         self.file.write(&buf).expect("Wrong writing value");
         Ok(())
     }
+
+    pub fn put_all(&mut self, values: &[f32]) -> Result<(), io::Error> {
+        for &n in values {
+            // self.file.write_f32::<LittleEndian>(n)?;
+            self.put(n)?;
+        }
+        Ok(())
+    }
 }
 
 
@@ -140,6 +148,13 @@ impl Sink<f64> {
         let mut buf = [0_u8; 8];
         LittleEndian::write_f64(&mut buf, value);
         self.file.write(&buf).expect("Wrong writing value");
+        Ok(())
+    }
+
+    pub fn put_all(&mut self, values: &[f64]) -> Result<(), io::Error> {
+        for &n in values {
+            self.put(n);
+        }
         Ok(())
     }
 }
