@@ -110,9 +110,30 @@ impl<T> Sink<T> {
     }
 }
 
+
 impl Sink<u8> {
     pub fn put(&mut self, value: u8) -> Result<(), io::Error> {
         self.file.write_u8(value).expect("Wrong writing value");
+        Ok(())
+    }
+}
+
+
+impl Sink<f32> {
+    pub fn put(&mut self, value: f32) -> Result<(), io::Error> {
+        let mut buf = [0_u8; 4];
+        LittleEndian::write_f32(&mut buf, value);
+        self.file.write(&buf).expect("Wrong writing value");
+        Ok(())
+    }
+}
+
+
+impl Sink<f64> {
+    pub fn put(&mut self, value: f64) -> Result<(), io::Error> {
+        let mut buf = [0_u8; 8];
+        LittleEndian::write_f64(&mut buf, value);
+        self.file.write(&buf).expect("Wrong writing value");
         Ok(())
     }
 }
