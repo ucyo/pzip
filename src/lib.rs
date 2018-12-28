@@ -24,7 +24,7 @@ pub struct Source<T> {
 impl<T> Source<T> {
 
     // REFACTOR: Change filename to fs::path::Path type
-    pub fn new(filename: String) -> Result<Source<T>, io::Error> {
+    pub fn new(filename: &String) -> Result<Source<T>, io::Error> {
         let file = fs::File::open(filename)?;
         let data : Vec<T> = Vec::new();
         Ok(Source{file, data})
@@ -99,8 +99,8 @@ pub struct Sink<T> {
 impl<T> Sink<T> {
 
     // REFACTOR: Change filename to fs::path::Path type
-    pub fn new(filename: String) -> Result<Sink<T>, io::Error> {
-        let file = fs::File::create(filename)?;
+    pub fn new(filename: &String) -> Result<Sink<T>, io::Error> {
+        let file = fs::File::create(&filename)?;
         Ok(Sink{file, data: PhantomData})
     }
 
