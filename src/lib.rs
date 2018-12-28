@@ -112,8 +112,14 @@ impl<T> Sink<T> {
 
 
 impl Sink<u8> {
+
     pub fn put(&mut self, value: u8) -> Result<(), io::Error> {
         self.file.write_u8(value).expect("Wrong writing value");
+        Ok(())
+    }
+
+    pub fn put_all(&mut self, values: &[u8]) -> Result<(), io::Error>{
+        self.file.write(values).expect("");
         Ok(())
     }
 }

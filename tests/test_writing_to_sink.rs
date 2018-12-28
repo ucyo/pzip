@@ -17,6 +17,24 @@ fn write_byte_to_file() {
     assert_eq!(v, value)
 }
 
+#[test]
+fn write_bytes_to_file() {
+    let filename = String::from("/tmp/output.raw");
+    let values = [123_u8, 193_u8, 201_u8];
+
+    let mut sink: pzip::Sink<u8> = pzip::Sink::new(&filename).expect("Error");
+    sink.put_all(&values).expect("Writing unsuccessfull");
+    sink.flush().expect("Writing unsuccessfull");
+
+    let mut source: pzip::Source<u8> = pzip::Source::new(&filename).expect("Error");
+    source.load().expect("Load unsuccessfull");
+
+    for i in 0..3 {
+        assert_eq!(source.ix(i), &values[i])
+    }
+
+}
+
 
 #[test]
 fn write_f32_to_file() {
