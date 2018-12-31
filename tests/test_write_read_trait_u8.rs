@@ -15,7 +15,7 @@ fn trait_write_byte_to_file() {
     sink.put(v).expect("Writing unsuccessfull");
     sink.flush().expect("Writing unsuccessfull");
 
-    let mut source: pzip::Source<u8> = pzip::Source::new(&filename).expect("Error");
+    let mut source: pzip::So<u8> = pzip::So::new(&filename);
     let value = source.get();
 
     std::fs::remove_file(&filename).expect("Error");
@@ -31,7 +31,7 @@ fn trait_write_bytes_to_file() {
     sink.put_all(&values).expect("Writing unsuccessfull");
     sink.flush().expect("Writing unsuccessfull");
 
-    let mut source: pzip::Source<u8> = pzip::Source::new(&filename).expect("Error");
+    let mut source: pzip::So<u8> = pzip::So::new(&filename);
     source.load().expect("Load unsuccessfull");
 
     for i in 0..3 {
