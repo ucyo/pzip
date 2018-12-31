@@ -15,16 +15,16 @@ pub trait CompressedFile<T> {
     fn put_all(&mut self, value: &[T])  -> Result<(), io::Error>;
 }
 
-pub struct So<T> {file: fs::File, data: Vec<T>}
-pub struct Si<T> {file: fs::File, data: PhantomData<T>}
+pub struct Source<T> {file: fs::File, data: Vec<T>}
+pub struct Sink<T> {file: fs::File, data: PhantomData<T>}
 
 
-impl FileToBeCompressed<u8> for So<u8> {
+impl FileToBeCompressed<u8> for Source<u8> {
 
     fn new(filename: &String) -> Self {
         let file = fs::File::open(filename).unwrap();
         let data : Vec<u8> = Vec::new();
-        So{file, data}
+        Source{file, data}
     }
 
     fn ix(&self, position: usize) -> &u8 {
@@ -44,12 +44,12 @@ impl FileToBeCompressed<u8> for So<u8> {
 
 }
 
-impl CompressedFile<u8> for Si<u8> {
+impl CompressedFile<u8> for Sink<u8> {
 
     // REFACTOR: Change filename to fs::path::Path type
     fn new(filename: &String) -> Self {
         let file = fs::File::create(&filename).unwrap();
-        Si{file, data: PhantomData}
+        Sink{file, data: PhantomData}
     }
 
     fn flush(&mut self)  -> Result<(), io::Error> {
