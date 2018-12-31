@@ -21,6 +21,10 @@ pub struct Source<T> {
     data: Vec<T>
 }
 
+pub struct Sink<T> {
+    file : fs::File,
+    data : PhantomData<T>
+}
 impl<T> Source<T> {
 
     // REFACTOR: Change filename to fs::path::Path type
@@ -90,12 +94,6 @@ impl Source<f64> {
     }
 }
 
-pub struct Sink<T> {
-    file : fs::File,
-    data : PhantomData<T>
-}
-
-
 impl<T> Sink<T> {
 
     // REFACTOR: Change filename to fs::path::Path type
@@ -153,7 +151,7 @@ impl Sink<f64> {
 
     pub fn put_all(&mut self, values: &[f64]) -> Result<(), io::Error> {
         for &n in values {
-            self.put(n);
+            self.put(n)?;
         }
         Ok(())
     }
