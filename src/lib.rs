@@ -13,8 +13,14 @@
 pub mod testing;
 
 #[allow(dead_code, unused_variables)]
-fn at(shape: (usize, usize), ix: usize, position: (usize, usize), data: &Vec<f64>) -> f64 {
-    0f64
+fn at3(shape: (usize, usize, usize), ix: usize, position: (usize, usize, usize), data: &Vec<f64>) -> f64 {
+    let nx = 1;
+    let ny = &nx * shape.0;
+    let nz = &ny * shape.1;
+
+    let pos = ix - (position.0 * nx + position.1 * ny + position.2 * nz);
+    data[pos]
+}
 
 #[allow(dead_code, unused_variables)]
 fn at_default2(shape: (usize, usize), ix: usize, position: (usize, usize), data: &Vec<f64>, default: f64) -> f64 {
@@ -85,9 +91,25 @@ mod tests {
         at_default2(shape, 18, position, &data, default);
     }
 
-        assert_eq!( at(shape,  5, position, &data) ,  1f64);
-        assert_eq!( at(shape, 14, position, &data) , 10f64);
-        assert_eq!( at(shape, 10, position, &data) ,  6f64);
-        assert_eq!( at(shape, 11, position, &data) ,  7f64);
+    #[test]
+    fn test_three_dimensions() {
+        let shape = (3,3,3);
+        let position = (0,1,0);
+        let data = vec![  0.0,  1.0,  2.0,
+                          3.0,  4.0,  5.0,
+                          6.0,  7.0,  8.0,
+
+                          9.0, 10.0, 11.0,
+                         12.0, 13.0, 14.0,
+                         15.0, 16.0, 17.0,
+
+                         18.0, 19.0, 20.0,
+                         21.0, 22.0, 23.0,
+                         24.0, 25.0, 26.0,
+                         ];
+
+        assert_eq!( at3(shape,  5, position, &data) ,  2f64);
+        assert_eq!( at3(shape, 14, position, &data) , 11f64);
+    }
     }
 }
