@@ -111,5 +111,26 @@ mod tests {
         assert_eq!( at3(shape,  5, position, &data) ,  2f64);
         assert_eq!( at3(shape, 14, position, &data) , 11f64);
     }
+
+    #[test]
+    fn test_three_dimensions_default() {
+        let default = 88f64;
+        let shape = (3,3,3);
+        let position = (0,1,0);
+        let data = vec![  0.0,  1.0,  2.0,
+                          3.0,  4.0,  5.0,
+                          6.0,  7.0,  8.0,
+
+                          9.0, 10.0, 11.0,
+                         12.0, 13.0, 14.0,
+                         15.0, 16.0, 17.0,
+
+                         18.0, 19.0, 20.0,
+                         21.0, 22.0, 23.0,
+                         24.0, 25.0, 26.0,
+                         ];
+
+        assert_eq!( at3(shape, 10, position, &data) ,  default);
+        assert_eq!( at3(shape, 11, position, &data) ,  default);
     }
 }
