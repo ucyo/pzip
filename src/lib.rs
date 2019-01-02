@@ -12,14 +12,67 @@
 
 pub mod testing;
 
+#[derive(Debug)]
+pub struct Storage {
+    data: Vec<f64>,
+    ix:   usize,
+    size: usize,
+    dims: (usize,usize,usize)
+}
+
+impl Storage {
+    pub fn new(size: usize, shape: (usize, usize, usize), default: f64) -> Self {
+        let data = vec![default;size];
+        let ix   = 0_usize;
+
+        let nx = 1;
+        let ny = &nx * shape.0;
+        let nz = &ny * shape.1;
+        // let nt = &nz * shape.2;
+
+        Storage{data, ix, size, dims:(nx,ny,nz)}
+    }
+    fn push(&mut self, value: f64, mut n: usize) {
+        while n > 0 {
+            self.data[self.ix%self.size] = value;
+            self.ix += 1;
+            n -= 1;
+        }
+    }
+    fn pos(&self, x: usize, y:usize, z:usize) -> f64 {
+        let pos = x*self.dims.0 + y*self.dims.1 + z * self.dims.2 + 1;
+        println!("{:?}", pos);
+        self.data[((self.ix - pos) %self.size)]
+    }
+}
+
+
 #[allow(dead_code, unused_variables)]
-fn at3(shape: (usize, usize, usize), ix: usize, position: (usize, usize, usize), data: &Vec<f64>) -> f64 {
+fn at3(shape: (usize, usize, usize), ix: usize, position: (usize, usize, usize), data: &Vec<f64>, default: f64) -> f64 {
+    assert!(ix < data.len(), "Index position {} > data size {}", ix, data.len());
+
     let nx = 1;
     let ny = &nx * shape.0;
     let nz = &ny * shape.1;
+    let nt = &nz * shape.2;
 
-    let pos = ix - (position.0 * nx + position.1 * ny + position.2 * nz);
-    data[pos]
+    let temp_array_size = position.0 * nx + position.1 * ny + position.2 * nz;
+    let mut temp_array = Storage::new(nz, shape, default);
+    let mut pos = 0_usize;
+    'outer: for i in 0..nz {
+        temp_array.push(default, ny);
+        for j in 0..ny {
+            temp_array.push(default, nx);
+            for k in 0..ny {
+                if pos == ix {
+                    break 'outer
+                }
+                temp_array.push(data[pos], 1);
+                pos += 1;
+            }
+        }
+    };
+    temp_array.pos(position.0,position.1,position.2)
 }
 
 #[allow(dead_code, unused_variables)]
