@@ -93,6 +93,7 @@ mod tests {
 
     #[test]
     fn test_three_dimensions() {
+        let default = 88f64;
         let shape = (3,3,3);
         let position = (0,1,0);
         let data = vec![  0.0,  1.0,  2.0,
@@ -108,8 +109,10 @@ mod tests {
                          24.0, 25.0, 26.0,
                          ];
 
-        assert_eq!( at3(shape,  5, position, &data) ,  2f64);
-        assert_eq!( at3(shape, 14, position, &data) , 11f64);
+        assert_eq!( at3(shape,  22, position, &data, default), 19f64);
+        assert_eq!( at3(shape,  13, position, &data, default), 10f64);
+        assert_eq!( at3(shape,  17, position, &data, default), 14f64);
+        assert_eq!( at3(shape, 21, position, &data, default), 18f64);
     }
 
     #[test]
@@ -130,7 +133,13 @@ mod tests {
                          24.0, 25.0, 26.0,
                          ];
 
-        assert_eq!( at3(shape, 10, position, &data) ,  default);
-        assert_eq!( at3(shape, 11, position, &data) ,  default);
+        assert_eq!( at3(shape,  9, position, &data, default), default);
+        assert_eq!( at3(shape, 18, position, &data, default), default);
+        assert_eq!( at3(shape, 20, position, &data, default), default);
+        assert_eq!( at3(shape,  2, position, &data, default), default);
+        assert_eq!( at3(shape, 10, position, &data, default), default);
+        assert_eq!( at3(shape,  1, position, &data, default), default);
+        assert_eq!( at3(shape, 10, position, &data, default), default);
+        assert_eq!( at3(shape, 11, position, &data, default), default);
     }
 }
