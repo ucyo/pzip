@@ -195,4 +195,66 @@ mod tests {
         assert_eq!( at3(shape, 10, position, &data, default), default);
         assert_eq!( at3(shape, 11, position, &data, default), default);
     }
+
+    #[test]
+    fn position_order() {
+        let p = Position(1,0,1);
+        let t = Position(1,2,8);
+        let q = Position(0,1,1);
+        let y = Position(1,0,1);
+
+        assert!(p < t);
+        assert!(p < q);
+        assert!(p == y);
+        assert!(y < q);
+        assert!(y <= q);
+    }
+
+    #[test]
+    fn position_list(){
+        let v = [Position(1,0,1),Position(1,2,8),Position(0,1,1)];
+        let mut result = &v[0];
+        for pos in v.iter() {
+            if result < pos {
+                result = pos;
+            }
+        }
+        assert_eq!(result, &Position(1,2,8));
+    }
+}
+
+use std::cmp::{PartialOrd, PartialEq, Ordering};
+
+#[derive(Debug)]
+struct Position(usize, usize, usize);
+
+impl PartialEq for Position {
+    fn eq(&self, other: &Position) -> bool {
+        let k = self.0 == other.0;
+        let l = self.1 == other.1;
+        let m = self.2 == other.2;
+
+        m & k & l
+    }
+}
+
+
+impl PartialOrd for Position {
+    fn partial_cmp(&self, other: &Position) -> Option<Ordering> {
+        if self.2 > other.2 {
+            return Some(Ordering::Greater)
+        } else if self.2 < self.2 {
+            return Some(Ordering::Less)
+        } else if self.1 > other.1 {
+            return Some(Ordering::Greater)
+        } else if self.1 < other.1 {
+            return Some(Ordering::Less)
+        } else if self.0 > other.0 {
+            return Some(Ordering::Greater)
+        } else if self.0 < other.0 {
+            return Some(Ordering::Less)
+        } else {
+            return Some(Ordering::Equal)
+        }
+    }
 }
