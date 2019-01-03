@@ -9,6 +9,7 @@
 // /// # Sink
 // /// The sink struct gives information/writes to output file.
 
+#![feature(generators, generator_trait)]
 
 pub mod testing;
 pub mod position;

@@ -1,3 +1,6 @@
+use super::position::Position;
+
+
 #[derive(Debug)]
 pub struct Traversal {
     nz: usize,
@@ -45,13 +48,16 @@ impl Traversal {
             n -= 1;
         }
     }
-    pub fn fetch(self, z: usize, y:usize, x:usize) -> f64 {
+    pub fn fetch(&self, z: usize, y:usize, x:usize) -> f64 {
         let pos = self.ix - (self.dz * z + self.dy * y + self.dx * x);
         self.a[pos & self.m]
     }
 }
 
-pub fn predict(data: &Vec<f64>, at: usize, mut traversal: Traversal) -> f64 {
+pub fn predict(data: &Vec<f64>,
+               at: usize,
+               traversal: &mut Traversal,
+               weights: &Vec<(i32, Position)>) -> f64 {
     let mut data_ix = 0usize;
     traversal.advance(1, 0, 0);
     'outer:
@@ -70,9 +76,14 @@ pub fn predict(data: &Vec<f64>, at: usize, mut traversal: Traversal) -> f64 {
             }
         }
     }
-    traversal.fetch(1, 1, 1)
+    let mut result = 0f64;
+    for (w,p) in weights {
+        result += *w as f64 * traversal.fetch(p.z, p.y, p.x);
+    }
+    result
 }
 
+#[allow(unused_imports)]
 mod tests {
     use super::*;
     #[test]
@@ -89,7 +100,13 @@ mod tests {
                           21.0, 22.0, 23.0,
                           24.0, 25.0, 26.0,
                           ];
-        let tr = Traversal::new(3, 3, 3);
-        assert_eq!( predict(&data, 24, tr), 0f64);
+        let mut tr = Traversal::new(3, 3, 3);
+
+        let mut weights: Vec<(i32, Position)> = Vec::new();
+        weights.push( ( 1, Position{x:0,y:1,z:1} ) );
+
+        assert_eq!( predict(&data, 20, &mut tr, &weights), 0f64);
+        assert_eq!( predict(&data, 17, &mut tr, &weights), 5f64);
+        assert_eq!( predict(&data, 11, &mut tr, &weights), 0f64);
     }
 }
