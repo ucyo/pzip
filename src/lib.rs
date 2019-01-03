@@ -132,7 +132,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "Index position")]
     fn test_two_dimensions_panic() {
         let default = 88f64;
         let shape = (4,4);
