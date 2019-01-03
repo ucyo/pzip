@@ -109,4 +109,88 @@ mod tests {
         assert_eq!( predict(&data, 17, &mut tr, &weights), 5f64);
         assert_eq!( predict(&data, 11, &mut tr, &weights), 0f64);
     }
+
+    #[test]
+    fn get_all_predictions(){
+        let data = vec![  0.0,  1.0,  2.0,
+                          3.0,  4.0,  5.0,
+                          6.0,  7.0,  8.0,
+
+                          9.0, 10.0, 11.0,
+                          12.0, 13.0, 14.0,
+                          15.0, 16.0, 17.0,
+
+                          18.0, 19.0, 20.0,
+                          21.0, 22.0, 23.0,
+                          24.0, 25.0, 26.0,
+                          ];
+        let mut tr = Traversal::new(3, 3, 3);
+
+        let mut weights: Vec<(i32, Position)> = Vec::new();
+        weights.push( ( 1, Position{x:1,y:0,z:0} ) );
+
+        let mut p = Predictor{
+            traversal: tr,
+            weights: weights,
+            data: data,
+        };
+
+        let mut generator_iterator = GeneratorIteratorAdapter(predictions(p));
+        let results: Vec<f64> = generator_iterator.collect();
+        assert_eq!(results,
+                   vec![0.0, 0.0, 1.0, 0.0, 3.0, 4.0, 0.0, 6.0, 7.0,
+                        0.0, 9.0, 10.0, 0.0, 12.0, 13.0, 0.0, 15.0,
+                        16.0, 0.0, 18.0, 19.0, 0.0, 21.0, 22.0, 0.0,
+                        24.0, 25.0]);
+    }
+}
+
+
+use std::ops::{Generator, GeneratorState};
+
+pub struct Predictor {
+    pub traversal: Traversal,
+    pub weights: Vec<(i32, Position)>,
+    pub data: Vec<f64>
+}
+
+fn predictions(mut p: Predictor) -> impl Generator<Yield = f64, Return = ()> {
+    move || {
+        let mut data_ix = 0usize;
+        while data_ix < p.data.len() {
+            p.traversal.advance(1, 0, 0);
+            for _ in 0..p.traversal.nz {
+                p.traversal.advance(0, 1, 0);
+                for _ in 0..p.traversal.ny {
+                    p.traversal.advance(0, 0, 1);
+                    for _ in 0..p.traversal.nx {
+                        let a = p.data[data_ix];
+                        let mut result = 0f64;
+                        for (w,pi) in &p.weights {
+                            result += *w as f64 * p.traversal.fetch(pi.z, pi.y, pi.x);
+                        }
+                        yield result;
+                        p.traversal.push(a, 1);
+                        data_ix += 1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct GeneratorIteratorAdapter<G>(G);
+
+impl<G> Iterator for GeneratorIteratorAdapter<G>
+where
+    G: Generator<Return=()>,
+{
+    type Item = G::Yield;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match unsafe { self.0.resume() } {
+            GeneratorState::Yielded(x) => Some(x),
+            GeneratorState::Complete(_) => None,
+        }
+    }
 }
