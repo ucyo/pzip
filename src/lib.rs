@@ -188,73 +188,54 @@ mod tests {
 
         assert_eq!( at3(shape,  9, position, &data, default), default);
         assert_eq!( at3(shape, 18, position, &data, default), default);
-        assert_eq!( at3(shape, 20, position, &data, default), default);
-        assert_eq!( at3(shape,  2, position, &data, default), default);
-        assert_eq!( at3(shape, 10, position, &data, default), default);
+        assert_eq!( at3(shape, 24, position, &data, default), default);
+        assert_eq!( at3(shape,  6, position, &data, default), default);
+        assert_eq!( at3(shape,  0, position, &data, default), default);
+        assert_eq!( at3(shape, 12, position, &data, default), default);
+        assert_eq!( at3(shape, 21, position, &data, default), default);
+        assert_eq!( at3(shape, 24, position, &data, default), default);
+
+        assert_eq!( at3(shape, 19, position, &data, default), 18f64);
+        assert_eq!( at3(shape, 17, position, &data, default), 16f64);
+        assert_eq!( at3(shape, 25, position, &data, default), 24f64);
+        assert_eq!( at3(shape,  8, position, &data, default), 7f64);
+        assert_eq!( at3(shape,  4, position, &data, default), 3f64);
+        assert_eq!( at3(shape, 25, position, &data, default), 24f64);
+        assert_eq!( at3(shape, 16, position, &data, default), 15f64);
+        assert_eq!( at3(shape, 17, position, &data, default), 16f64);
+    }
+
+    #[test]
+    fn test_three_dimensions_default_position_z() {
+        let default = 88f64;
+        let shape = (3,3,3);
+        let position = (0,0,1);
+        let data = vec![  0.0,  1.0,  2.0,
+                          3.0,  4.0,  5.0,
+                          6.0,  7.0,  8.0,
+
+                          9.0, 10.0, 11.0,
+                         12.0, 13.0, 14.0,
+                         15.0, 16.0, 17.0,
+
+                         18.0, 19.0, 20.0,
+                         21.0, 22.0, 23.0,
+                         24.0, 25.0, 26.0,
+                         ];
+
         assert_eq!( at3(shape,  1, position, &data, default), default);
-        assert_eq!( at3(shape, 10, position, &data, default), default);
-        assert_eq!( at3(shape, 11, position, &data, default), default);
-    }
+        assert_eq!( at3(shape,  0, position, &data, default), default);
+        assert_eq!( at3(shape,  2, position, &data, default), default);
+        assert_eq!( at3(shape,  6, position, &data, default), default);
+        assert_eq!( at3(shape,  7, position, &data, default), default);
+        assert_eq!( at3(shape,  8, position, &data, default), default);
+        assert_eq!( at3(shape,  9, position, &data, default), default);
+        assert_eq!( at3(shape,  5, position, &data, default), default);
 
-    #[test]
-    fn position_order() {
-        let p = Position(1,0,1);
-        let t = Position(1,2,8);
-        let q = Position(0,1,1);
-        let y = Position(1,0,1);
-
-        assert!(p < t);
-        assert!(p < q);
-        assert!(p == y);
-        assert!(y < q);
-        assert!(y <= q);
-    }
-
-    #[test]
-    fn position_list(){
-        let v = [Position(1,0,1),Position(1,2,8),Position(0,1,1)];
-        let mut result = &v[0];
-        for pos in v.iter() {
-            if result < pos {
-                result = pos;
-            }
-        }
-        assert_eq!(result, &Position(1,2,8));
-    }
-}
-
-use std::cmp::{PartialOrd, PartialEq, Ordering};
-
-#[derive(Debug)]
-struct Position(usize, usize, usize);
-
-impl PartialEq for Position {
-    fn eq(&self, other: &Position) -> bool {
-        let k = self.0 == other.0;
-        let l = self.1 == other.1;
-        let m = self.2 == other.2;
-
-        m & k & l
-    }
-}
-
-
-impl PartialOrd for Position {
-    fn partial_cmp(&self, other: &Position) -> Option<Ordering> {
-        if self.2 > other.2 {
-            return Some(Ordering::Greater)
-        } else if self.2 < self.2 {
-            return Some(Ordering::Less)
-        } else if self.1 > other.1 {
-            return Some(Ordering::Greater)
-        } else if self.1 < other.1 {
-            return Some(Ordering::Less)
-        } else if self.0 > other.0 {
-            return Some(Ordering::Greater)
-        } else if self.0 < other.0 {
-            return Some(Ordering::Less)
-        } else {
-            return Some(Ordering::Equal)
-        }
+        assert_eq!( at3(shape, 22, position, &data, default), 13f64-1.);
+        assert_eq!( at3(shape, 17, position, &data, default), 8f64-1.);
+        assert_eq!( at3(shape, 25, position, &data, default), 16f64-1.);
+        assert_eq!( at3(shape, 16, position, &data, default), 7f64-1.);
+        assert_eq!( at3(shape, 13, position, &data, default), 4f64-1.);
     }
 }
