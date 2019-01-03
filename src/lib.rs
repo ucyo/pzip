@@ -1,252 +1,262 @@
-/// pzip - predicted zip
-///
-/// # pzip
-/// A compression library for floating point data
-///
-/// # Source
-/// The source gives information/reads input file to be compressed.
-///
-/// # Sink
-/// The sink struct gives information/writes to output file.
+// /// pzip - predicted zip
+// ///
+// /// # pzip
+// /// A compression library for floating point data
+// ///
+// /// # Source
+// /// The source gives information/reads input file to be compressed.
+// ///
+// /// # Sink
+// /// The sink struct gives information/writes to output file.
 
 
 pub mod testing;
 pub mod position;
+pub mod traversal;
 
-#[derive(Debug)]
-pub struct Storage {
-    data: Vec<f64>,
-    ix:   usize,
-    size: usize,
-    dims: (usize,usize,usize)
-}
+// #[derive(Debug)]
+// pub struct Storage {
+//     a: Vec<f64>,
+//     ix:   usize,
+//     and:  usize,
+//     dims: Dimension,
+//     default: f64,
+// }
 
-impl Storage {
-    pub fn new(size: usize, shape: (usize, usize, usize), default: f64) -> Self {
-        let data = vec![default;size];
-        let ix   = 0_usize;
-
-        let nx = 1;
-        let ny = &nx * shape.0 + 1;
-        let nz = &ny * shape.1 + ny;
-        // let nt = &nz * shape.2;
-
-        Storage{data, ix, size, dims:(nx,ny,nz)}
-    }
-    fn push(&mut self, value: f64, mut n: usize) {
-        while n > 0 {
-            self.data[self.ix%self.size] = value;
-            self.ix += 1;
-            n -= 1;
-        }
-    }
-    fn pos(&self, x: usize, y:usize, z:usize) -> f64 {
-        let pos = x*self.dims.0 + y*self.dims.1 + z * self.dims.2;
-        println!("Pos={:?}, Ix={:?}, Mo={:?}", pos, self.ix, (((self.ix as i32 - pos as i32) as usize %self.size)));
-        let result = self.data[((self.ix as i32 - pos as i32) as usize %self.size)];
-        result
-    }
-}
+// type Dimension = position::Position;
+// type Shape = position::Position;
 
 
-#[allow(dead_code)]
-fn at3(shape: (usize, usize, usize), ix: usize, position: (usize, usize, usize), data: &Vec<f64>, default: f64) -> f64 {
-    assert!(ix < data.len(), "Index position {} > data size {}", ix, data.len());
+// impl Storage {
+//     pub fn new(shape: Shape, maxposition : &position::Position) -> Self {
+//         let nx = 1;
+//         let ny = nx * (shape.x + maxposition.x);
+//         let nz = ny * (shape.y + maxposition.y);
 
-    let nx = 1;
-    let ny = &nx * shape.0;
-    let nz = &ny * shape.1;
-    let nt = &nz * shape.2;
+//         let mut size = nx + ny + nz;
+//         while size & (size + 1) != 0{
+//             size = size | size + 1
+//         };
+//         let data = vec![0f64;size+1];
+//         let ix   = 0_usize;
 
-    // let temp_array_size = position.0 * nx + position.1 * ny + position.2 * nz;
-    let mut temp_array = Storage::new(nt, shape, default);
-    let mut pos = 0_usize;
-    'outer: for _ in 0..nz {
-        temp_array.push(default, ny);
-        for _ in 0..ny {
-            temp_array.push(default, nx);
-            for _ in 0..ny {
-                if pos == ix {
-                    break 'outer
-                }
-                temp_array.push(data[pos], 1);
-                pos += 1;
-            }
-        }
-    };
-    temp_array.pos(position.0,position.1,position.2)
-}
+//         Storage{data, ix, and:size, dims:Dimension{x:nx,y:ny,z:nz}, default: 0f64}
+//     }
 
-#[allow(dead_code, unused_variables)]
-fn at_default2(shape: (usize, usize), ix: usize, position: (usize, usize), data: &Vec<f64>, default: f64) -> f64 {
-    assert!(ix < data.len(), "Index position {} > data size {}", ix, data.len());
+//     fn push(&mut self, value: f64, mut n: usize) {
+//         println!("Pushing {}x{}", n, value);
+//         while n > 0 {
+//             self.data[self.ix & self.and] = value;
+//             self.ix += 1;
+//             n -= 1;
+//         }
+//     }
 
-    let nx = 1;
-    let ny = &nx * shape.0;
-    let nz = &ny * shape.1;
+//     fn adv(&mut self, z:usize, y:usize, x: usize){
+//         let n = z * self.dims.z + y * self.dims.y + x*self.dims.x;
+//         self.push(self.default, n);
+//     }
 
-    // build temporary array to save the values needed for future predictions.
-    // the size is the furthest point used for prediction:
-    // - in this case given by position (being the single value to be used
-    //   in the prediction)
-    let size = position.0 * nx + position.1 * ny;
-    let mut temporary_array: Vec<f64> = vec![0f64; size];
+//     fn pos(&self, z: usize, y:usize, x:usize) -> f64 {
+//         let pos = self.ix - (x*self.dims.x + y*(self.dims.y+1) + z * (self.dims.z+self.dims.y));
+//         self.data[pos & self.and]
+//     }
+// }
 
-    // fill out all the values till the current position. Since this
-    // elements should have been seen by now if this was not a fake test case
-    for i in 0..ix {
-        temporary_array[i%size] = data[i]
-    }
 
-    // if ix position is smaller than the furthest point needed for prediction
-    // return the default value. Otherwise return the value in the temporary
-    // array
-    if ix < size {
-        return default
-    } else {
-        let pos = ix as i32 - size as i32;
-        let ixposition = pos as usize % size;
-        return temporary_array[ixposition]
-    }
-    // TODO: it might be more efficient to use XOR instead of modulo?
-}
+// #[allow(dead_code)]
+// fn at3(store: &mut Storage, ix: usize, data: &Vec<f64>, pos: &position::Position) -> f64 {
+//     let mut data_ix = 0usize;
+//     store.adv(1, 0, 0);
+//     println!("{:?}", store.data);
+//     'outer: for _ in 0..store.dims.z {
+//         store.adv(0, 1, 0);
+//         println!("{:?}", store.data);
+//         for _ in 0..store.dims.y {
+//             store.adv(0, 0, 1);
+//             println!("{:?}", store.data);
+//             for _ in 0..store.dims.y {
+//                 println!("{:?}", store);
+//                 let result = data[data_ix];
+//                 if data_ix == ix {
+//                     break 'outer;
+//                 }
+//                 store.push(result, 1);
+//                 data_ix += 1;
+//             }
+//         }
+//     }
+//     store.pos(pos.z,pos.y,pos.x)
+// }
 
-#[allow(unused_imports)]
-mod tests {
-    use super::*;
+// #[allow(dead_code, unused_variables)]
+// fn at_default2(shape: (usize, usize), ix: usize, position: (usize, usize), data: &Vec<f64>, default: f64) -> f64 {
+//     assert!(ix < data.len(), "Index position {} > data size {}", ix, data.len());
 
-    #[test]
-    fn test_two_dimensions() {
-        let default = 88f64;
-        let shape = (4,4);
-        let position = (0, 1);
-        let data = vec![ 0.0, 1.0, 2.0, 3.0,
-                         4.0, 5.0, 6.0, 7.0,
-                         8.0, 9.0,10.0,11.0,
-                        12.0,13.0,14.0,15.0];
+//     let nx = 1;
+//     let ny = &nx * shape.0;
+//     let nz = &ny * shape.1;
 
-        assert_eq!( at_default2(shape,  5, position, &data, default) ,  1f64);
-        assert_eq!( at_default2(shape, 14, position, &data, default) , 10f64);
-        assert_eq!( at_default2(shape, 10, position, &data, default) ,  6f64);
-        assert_eq!( at_default2(shape, 11, position, &data, default) ,  7f64);
-        assert_eq!( at_default2(shape,  3, position, &data, default) ,  default);
-        assert_eq!( at_default2(shape,  0, position, &data, default) ,  default);
-    }
+//     // build temporary array to save the values needed for future predictions.
+//     // the size is the furthest point used for prediction:
+//     // - in this case given by position (being the single value to be used
+//     //   in the prediction)
+//     let size = position.0 * nx + position.1 * ny;
+//     let mut temporary_array: Vec<f64> = vec![0f64; size];
 
-    #[test]
-    #[should_panic(expected = "Index position")]
-    fn test_two_dimensions_panic() {
-        let default = 88f64;
-        let shape = (4,4);
-        let position = (0, 1);
-        let data = vec![ 0.0, 1.0, 2.0, 3.0,
-                         4.0, 5.0, 6.0, 7.0,
-                         8.0, 9.0,10.0,11.0,
-                        12.0,13.0,14.0,15.0];
-        at_default2(shape, 18, position, &data, default);
-    }
+//     // fill out all the values till the current position. Since this
+//     // elements should have been seen by now if this was not a fake test case
+//     for i in 0..ix {
+//         temporary_array[i%size] = data[i]
+//     }
 
-    #[test]
-    fn test_three_dimensions_position_y() {
-        let default = 88f64;
-        let shape = (3,3,3);
-        let position = (0,1,0);
-        let data = vec![  0.0,  1.0,  2.0,
-                          3.0,  4.0,  5.0,
-                          6.0,  7.0,  8.0,
+//     // if ix position is smaller than the furthest point needed for prediction
+//     // return the default value. Otherwise return the value in the temporary
+//     // array
+//     if ix < size {
+//         return default
+//     } else {
+//         let pos = ix as i32 - size as i32;
+//         let ixposition = pos as usize % size;
+//         return temporary_array[ixposition]
+//     }
+//     // TODO: it might be more efficient to use XOR instead of modulo?
+// }
 
-                          9.0, 10.0, 11.0,
-                         12.0, 13.0, 14.0,
-                         15.0, 16.0, 17.0,
+// #[allow(unused_imports)]
+// mod tests {
+//     use super::*;
 
-                         18.0, 19.0, 20.0,
-                         21.0, 22.0, 23.0,
-                         24.0, 25.0, 26.0,
-                         ];
+//     #[test]
+//     fn test_two_dimensions() {
+//         let default = 88f64;
+//         let shape = (4,4);
+//         let position = (0, 1);
+//         let data = vec![ 0.0, 1.0, 2.0, 3.0,
+//                          4.0, 5.0, 6.0, 7.0,
+//                          8.0, 9.0,10.0,11.0,
+//                         12.0,13.0,14.0,15.0];
 
-        assert_eq!( at3(shape,  9, position, &data, default), default);
-        assert_eq!( at3(shape, 18, position, &data, default), default);
-        assert_eq!( at3(shape, 20, position, &data, default), default);
-        assert_eq!( at3(shape,  2, position, &data, default), default);
-        assert_eq!( at3(shape, 10, position, &data, default), default);
-        assert_eq!( at3(shape,  1, position, &data, default), default);
-        assert_eq!( at3(shape, 10, position, &data, default), default);
-        assert_eq!( at3(shape, 11, position, &data, default), default);
+//         assert_eq!( at_default2(shape,  5, position, &data, default) ,  1f64);
+//         assert_eq!( at_default2(shape, 14, position, &data, default) , 10f64);
+//         assert_eq!( at_default2(shape, 10, position, &data, default) ,  6f64);
+//         assert_eq!( at_default2(shape, 11, position, &data, default) ,  7f64);
+//         assert_eq!( at_default2(shape,  3, position, &data, default) ,  default);
+//         assert_eq!( at_default2(shape,  0, position, &data, default) ,  default);
+//     }
 
-        assert_eq!( at3(shape,  22, position, &data, default), 19f64);
-        assert_eq!( at3(shape,  13, position, &data, default), 10f64);
-        assert_eq!( at3(shape,  17, position, &data, default), 14f64);
-        assert_eq!( at3(shape,  21, position, &data, default), 18f64);
-    }
+//     #[test]
+//     #[should_panic(expected = "Index position")]
+//     fn test_two_dimensions_panic() {
+//         let default = 88f64;
+//         let shape = (4,4);
+//         let position = (0, 1);
+//         let data = vec![ 0.0, 1.0, 2.0, 3.0,
+//                          4.0, 5.0, 6.0, 7.0,
+//                          8.0, 9.0,10.0,11.0,
+//                         12.0,13.0,14.0,15.0];
+//         at_default2(shape, 18, position, &data, default);
+//     }
 
-    #[test]
-    fn test_three_dimensions_default_position_x() {
-        let default = 88f64;
-        let shape = (3,3,3);
-        let position = (1,0,0);
-        let data = vec![  0.0,  1.0,  2.0,
-                          3.0,  4.0,  5.0,
-                          6.0,  7.0,  8.0,
+//     #[test]
+//     fn test_three_dimensions_position_y() {
+//         let default = 0f64;
+//         let shape = Shape{x:3,y:3,z:3};
+//         let maxposition = position::Position{x:2,y:1,z:0};
+//         let mut store = Storage::new(shape, &maxposition);
 
-                          9.0, 10.0, 11.0,
-                         12.0, 13.0, 14.0,
-                         15.0, 16.0, 17.0,
+//         let data = vec![  0.0,  1.0,  2.0,
+//                           3.0,  4.0,  5.0,
+//                           6.0,  7.0,  8.0,
 
-                         18.0, 19.0, 20.0,
-                         21.0, 22.0, 23.0,
-                         24.0, 25.0, 26.0,
-                         ];
+//                           9.0, 10.0, 11.0,
+//                          12.0, 13.0, 14.0,
+//                          15.0, 16.0, 17.0,
 
-        assert_eq!( at3(shape,  9, position, &data, default), default);
-        assert_eq!( at3(shape, 18, position, &data, default), default);
-        assert_eq!( at3(shape, 24, position, &data, default), default);
-        assert_eq!( at3(shape,  6, position, &data, default), default);
-        assert_eq!( at3(shape,  0, position, &data, default), default);
-        assert_eq!( at3(shape, 12, position, &data, default), default);
-        assert_eq!( at3(shape, 21, position, &data, default), default);
-        assert_eq!( at3(shape, 24, position, &data, default), default);
+//                          18.0, 19.0, 20.0,
+//                          21.0, 22.0, 23.0,
+//                          24.0, 25.0, 26.0,
+//                          ];
 
-        assert_eq!( at3(shape, 19, position, &data, default), 18f64);
-        assert_eq!( at3(shape, 17, position, &data, default), 16f64);
-        assert_eq!( at3(shape, 25, position, &data, default), 24f64);
-        assert_eq!( at3(shape,  8, position, &data, default), 7f64);
-        assert_eq!( at3(shape,  4, position, &data, default), 3f64);
-        assert_eq!( at3(shape, 25, position, &data, default), 24f64);
-        assert_eq!( at3(shape, 16, position, &data, default), 15f64);
-        assert_eq!( at3(shape, 17, position, &data, default), 16f64);
-    }
+//         assert_eq!( at3(&mut store,  9, &data, &maxposition), default);
+//         // assert_eq!( at3(&mut store, 18, &data, &maxposition), default);
+//         // assert_eq!( at3(&mut store, 20, &data, &maxposition), default);
+//         // assert_eq!( at3(&mut store,  2, &data, &maxposition), default);
+//         // assert_eq!( at3(&mut store, 10, &data, &maxposition), default);
+//         // assert_eq!( at3(&mut store,  1, &data, &maxposition), default);
+//         // assert_eq!( at3(&mut store, 10, &data, &maxposition), default);
+//         // assert_eq!( at3(&mut store, 11, &data, &maxposition), default);
+//         // assert_eq!( at3(&mut store,  4, &data,  &maxposition),  1f64);
+//         // assert_eq!( at3(&mut store, 13, &data, &maxposition), 10f64);
+//         // assert_eq!( at3(&mut store, 17, &data, &maxposition), 14f64);
+//         // assert_eq!( at3(&mut store, 21, &data, &maxposition), 18f64);
+//     }
 
-    #[test]
-    fn test_three_dimensions_default_position_z() {
-        let default = 88f64;
-        let shape = (3,3,3);
-        let position = (0,0,1);
-        let data = vec![  0.0,  1.0,  2.0,
-                          3.0,  4.0,  5.0,
-                          6.0,  7.0,  8.0,
+//     //   #[test]
+//     // fn test_three_dimensions_position_x() {
+//     //     let default = 0f64;
+//     //     let shape = Shape{x:3,y:3,z:3};
+//     //     let maxposition = position::Position{x:1,y:1,z:0};
+//     //     let mut store = Storage::new(shape, &maxposition);
 
-                          9.0, 10.0, 11.0,
-                         12.0, 13.0, 14.0,
-                         15.0, 16.0, 17.0,
+//     //     let data = vec![  0.0,  1.0,  2.0,
+//     //                       3.0,  4.0,  5.0,
+//     //                       6.0,  7.0,  8.0,
 
-                         18.0, 19.0, 20.0,
-                         21.0, 22.0, 23.0,
-                         24.0, 25.0, 26.0,
-                         ];
+//     //                       9.0, 10.0, 11.0,
+//     //                      12.0, 13.0, 14.0,
+//     //                      15.0, 16.0, 17.0,
 
-        assert_eq!( at3(shape,  1, position, &data, default), default);
-        assert_eq!( at3(shape,  0, position, &data, default), default);
-        assert_eq!( at3(shape,  2, position, &data, default), default);
-        assert_eq!( at3(shape,  6, position, &data, default), default);
-        assert_eq!( at3(shape,  7, position, &data, default), default);
-        assert_eq!( at3(shape,  8, position, &data, default), default);
-        assert_eq!( at3(shape,  9, position, &data, default), default);
-        assert_eq!( at3(shape,  5, position, &data, default), default);
+//     //                      18.0, 19.0, 20.0,
+//     //                      21.0, 22.0, 23.0,
+//     //                      24.0, 25.0, 26.0,
+//     //                      ];
 
-        assert_eq!( at3(shape, 22, position, &data, default), 13f64-1.);
-        assert_eq!( at3(shape, 17, position, &data, default), 8f64-1.);
-        assert_eq!( at3(shape, 25, position, &data, default), 16f64-1.);
-        assert_eq!( at3(shape, 16, position, &data, default), 7f64-1.);
-        assert_eq!( at3(shape, 13, position, &data, default), 4f64-1.);
-    }
-}
+//     //     // assert_eq!( at3(&mut store,  9, &data, &maxposition), default);
+//     //     // assert_eq!( at3(&mut store, 18, &data, &maxposition), default);
+//     //     // assert_eq!( at3(&mut store, 20, &data, &maxposition), default);
+//     //     // assert_eq!( at3(&mut store,  2, &data, &maxposition), default);
+//     //     // assert_eq!( at3(&mut store, 10, &data, &maxposition), default);
+//     //     // assert_eq!( at3(&mut store,  1, &data, &maxposition), default);
+//     //     // assert_eq!( at3(&mut store, 10, &data, &maxposition), default);
+//     //     // assert_eq!( at3(&mut store, 11, &data, &maxposition), default);
+//     //     // assert_eq!( at3(&mut store, 4, &data,  &maxposition),  3f64);
+//     //     assert_eq!( at3(&mut store, 25, &data, &maxposition), 12f64);
+//     //     // assert_eq!( at3(&mut store, 17, &data, &maxposition), 16f64);
+//     //     // assert_eq!( at3(&mut store, 21, &data, &maxposition), default);
+//     // }
+
+//     // #[test]
+//     // fn test_three_dimensions_default_position_z() {
+//     //     let default = 88f64;
+//     //     let shape = (3,3,3);
+//     //     let position = (0,0,1);
+//     //     let data = vec![  0.0,  1.0,  2.0,
+//     //                       3.0,  4.0,  5.0,
+//     //                       6.0,  7.0,  8.0,
+
+//     //                       9.0, 10.0, 11.0,
+//     //                      12.0, 13.0, 14.0,
+//     //                      15.0, 16.0, 17.0,
+
+//     //                      18.0, 19.0, 20.0,
+//     //                      21.0, 22.0, 23.0,
+//     //                      24.0, 25.0, 26.0,
+//     //                      ];
+
+//     //     assert_eq!( at3(shape,  1, position, &data, default), default);
+//     //     assert_eq!( at3(shape,  0, position, &data, default), default);
+//     //     assert_eq!( at3(shape,  2, position, &data, default), default);
+//     //     assert_eq!( at3(shape,  6, position, &data, default), default);
+//     //     assert_eq!( at3(shape,  7, position, &data, default), default);
+//     //     assert_eq!( at3(shape,  8, position, &data, default), default);
+//     //     assert_eq!( at3(shape,  9, position, &data, default), default);
+//     //     assert_eq!( at3(shape,  5, position, &data, default), default);
+
+//     //     assert_eq!( at3(shape, 22, position, &data, default), 13f64-1.);
+//     //     assert_eq!( at3(shape, 17, position, &data, default), 8f64-1.);
+//     //     assert_eq!( at3(shape, 25, position, &data, default), 16f64-1.);
+//     //     assert_eq!( at3(shape, 16, position, &data, default), 7f64-1.);
+//     //     assert_eq!( at3(shape, 13, position, &data, default), 4f64-1.);
+//     // }
+// }
