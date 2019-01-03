@@ -11,6 +11,7 @@
 
 
 pub mod testing;
+pub mod position;
 
 #[derive(Debug)]
 pub struct Storage {
@@ -26,8 +27,8 @@ impl Storage {
         let ix   = 0_usize;
 
         let nx = 1;
-        let ny = &nx * shape.0;
-        let nz = &ny * shape.1;
+        let ny = &nx * shape.0 + 1;
+        let nz = &ny * shape.1 + ny;
         // let nt = &nz * shape.2;
 
         Storage{data, ix, size, dims:(nx,ny,nz)}
@@ -40,14 +41,15 @@ impl Storage {
         }
     }
     fn pos(&self, x: usize, y:usize, z:usize) -> f64 {
-        let pos = x*self.dims.0 + y*self.dims.1 + z * self.dims.2 + 1;
-        println!("{:?}", pos);
-        self.data[((self.ix - pos) %self.size)]
+        let pos = x*self.dims.0 + y*self.dims.1 + z * self.dims.2;
+        println!("Pos={:?}, Ix={:?}, Mo={:?}", pos, self.ix, (((self.ix as i32 - pos as i32) as usize %self.size)));
+        let result = self.data[((self.ix as i32 - pos as i32) as usize %self.size)];
+        result
     }
 }
 
 
-#[allow(dead_code, unused_variables)]
+#[allow(dead_code)]
 fn at3(shape: (usize, usize, usize), ix: usize, position: (usize, usize, usize), data: &Vec<f64>, default: f64) -> f64 {
     assert!(ix < data.len(), "Index position {} > data size {}", ix, data.len());
 
@@ -56,14 +58,14 @@ fn at3(shape: (usize, usize, usize), ix: usize, position: (usize, usize, usize),
     let nz = &ny * shape.1;
     let nt = &nz * shape.2;
 
-    let temp_array_size = position.0 * nx + position.1 * ny + position.2 * nz;
-    let mut temp_array = Storage::new(nz, shape, default);
+    // let temp_array_size = position.0 * nx + position.1 * ny + position.2 * nz;
+    let mut temp_array = Storage::new(nt, shape, default);
     let mut pos = 0_usize;
-    'outer: for i in 0..nz {
+    'outer: for _ in 0..nz {
         temp_array.push(default, ny);
-        for j in 0..ny {
+        for _ in 0..ny {
             temp_array.push(default, nx);
-            for k in 0..ny {
+            for _ in 0..ny {
                 if pos == ix {
                     break 'outer
                 }
@@ -145,7 +147,7 @@ mod tests {
     }
 
     #[test]
-    fn test_three_dimensions() {
+    fn test_three_dimensions_position_y() {
         let default = 88f64;
         let shape = (3,3,3);
         let position = (0,1,0);
@@ -162,17 +164,26 @@ mod tests {
                          24.0, 25.0, 26.0,
                          ];
 
+        assert_eq!( at3(shape,  9, position, &data, default), default);
+        assert_eq!( at3(shape, 18, position, &data, default), default);
+        assert_eq!( at3(shape, 20, position, &data, default), default);
+        assert_eq!( at3(shape,  2, position, &data, default), default);
+        assert_eq!( at3(shape, 10, position, &data, default), default);
+        assert_eq!( at3(shape,  1, position, &data, default), default);
+        assert_eq!( at3(shape, 10, position, &data, default), default);
+        assert_eq!( at3(shape, 11, position, &data, default), default);
+
         assert_eq!( at3(shape,  22, position, &data, default), 19f64);
         assert_eq!( at3(shape,  13, position, &data, default), 10f64);
         assert_eq!( at3(shape,  17, position, &data, default), 14f64);
-        assert_eq!( at3(shape, 21, position, &data, default), 18f64);
+        assert_eq!( at3(shape,  21, position, &data, default), 18f64);
     }
 
     #[test]
-    fn test_three_dimensions_default() {
+    fn test_three_dimensions_default_position_x() {
         let default = 88f64;
         let shape = (3,3,3);
-        let position = (0,1,0);
+        let position = (1,0,0);
         let data = vec![  0.0,  1.0,  2.0,
                           3.0,  4.0,  5.0,
                           6.0,  7.0,  8.0,
