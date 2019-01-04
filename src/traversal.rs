@@ -41,7 +41,6 @@ impl Traversal {
         self.push(self.zero, n);
     }
     pub fn push(&mut self, val:f64, mut n: usize) {
-        println!("Pushing {}x{}", n, val);
         while n > 0 {
             self.a[self.ix & self.m] = val;
             self.ix += 1;
@@ -91,8 +90,8 @@ pub struct Predictor {
     pub weights: Vec<(i32, Position)>,
     pub data: Vec<f64>
 }
-
-fn predictions(mut p: Predictor) -> impl Generator<Yield = f64, Return = ()> {
+#[allow(dead_code)]
+pub fn predictions(mut p: Predictor) -> impl Generator<Yield = f64, Return = ()> {
     move || {
         let mut data_ix = 0usize;
         while data_ix < p.data.len() {
@@ -113,7 +112,7 @@ fn predictions(mut p: Predictor) -> impl Generator<Yield = f64, Return = ()> {
                                        .sum();
 
                         //method 2
-                        // let mut result = 0f64;
+                        let mut result = 0f64;
                         // for (w,pi) in &p.weights {
                         //     result += *w as f64 * p.traversal.fetch(pi.z, pi.y, pi.x);
                         // }
@@ -128,7 +127,8 @@ fn predictions(mut p: Predictor) -> impl Generator<Yield = f64, Return = ()> {
     }
 }
 
-struct GeneratorIteratorAdapter<G>(G);
+#[allow(dead_code)]
+pub struct GeneratorIteratorAdapter<G>(pub G);
 
 impl<G> Iterator for GeneratorIteratorAdapter<G>
 where
@@ -188,18 +188,18 @@ mod tests {
                           21.0, 22.0, 23.0,
                           24.0, 25.0, 26.0,
                           ];
-        let mut tr = Traversal::new(3, 3, 3);
+        let tr = Traversal::new(3, 3, 3);
 
         let mut weights: Vec<(i32, Position)> = Vec::new();
         weights.push( ( 1, Position{x:1,y:0,z:0} ) );
 
-        let mut p = Predictor{
+        let p = Predictor{
             traversal: tr,
             weights: weights,
             data: data,
         };
 
-        let mut generator_iterator = GeneratorIteratorAdapter(predictions(p));
+        let generator_iterator = GeneratorIteratorAdapter(predictions(p));
         let results: Vec<f64> = generator_iterator.collect();
         assert_eq!(results,
                    vec![0.0, 0.0, 1.0, 0.0, 3.0, 4.0, 0.0, 6.0, 7.0,
