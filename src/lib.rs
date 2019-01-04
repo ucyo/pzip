@@ -14,6 +14,7 @@
 pub mod testing;
 pub mod position;
 pub mod traversal;
+pub mod mapping;
 
 // #[derive(Debug)]
 // pub struct Storage {
