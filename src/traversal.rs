@@ -103,11 +103,22 @@ fn predictions(mut p: Predictor) -> impl Generator<Yield = f64, Return = ()> {
                     p.traversal.advance(0, 0, 1);
                     for _ in 0..p.traversal.nx {
                         let a = p.data[data_ix];
-                        let mut result = 0f64;
-                        for (w,pi) in &p.weights {
-                            result += *w as f64 * p.traversal.fetch(pi.z, pi.y, pi.x);
-                        }
-                        yield result;
+
+                        // This needs to be bench tested using criterion:
+                        // Which implementation is faster than the other?
+
+                        // method 1
+                        yield p.weights.iter()
+                                       .map(|(w,f)| *w as f64 * p.traversal.fetch(f.z, f.y, f.x))
+                                       .sum();
+
+                        //method 2
+                        // let mut result = 0f64;
+                        // for (w,pi) in &p.weights {
+                        //     result += *w as f64 * p.traversal.fetch(pi.z, pi.y, pi.x);
+                        // }
+                        // yield result;
+
                         p.traversal.push(a, 1);
                         data_ix += 1;
                     }
