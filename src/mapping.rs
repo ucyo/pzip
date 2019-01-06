@@ -164,4 +164,15 @@ mod tests {
             assert_eq!(Ordered::to_u64(Ordered::from_u64(val)), val);
         }
     }
+
+    #[test]
+    fn classic_gray_codes() {
+        let input: Vec<u32> = vec![15, 5, 6, 3, 1];
+        let expected: Vec<u32> = vec![8, 7, 5, 2, 1];
+        let result: Vec<u32> = input.iter().map(|x| ClassicGray::to_new(*x)).collect();
+
+        for (e, r) in expected.iter().zip(result.iter()) {
+            assert_eq!(r, e)
+        }
+    }
 }
