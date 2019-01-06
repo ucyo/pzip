@@ -1,11 +1,10 @@
-
-use std::cmp::{PartialOrd, PartialEq, Ordering};
+use std::cmp::{Ordering, PartialEq, PartialOrd};
 
 #[derive(Debug)]
 pub struct Position {
-    pub x :usize,
-    pub y :usize,
-    pub z :usize,
+    pub x: usize,
+    pub y: usize,
+    pub z: usize,
 }
 
 pub fn max_position(positions: &[Position]) -> &Position {
@@ -28,27 +27,25 @@ impl PartialEq for Position {
     }
 }
 
-
 impl PartialOrd for Position {
     fn partial_cmp(&self, other: &Position) -> Option<Ordering> {
         if self.z > other.z {
-            return Some(Ordering::Greater)
+            return Some(Ordering::Greater);
         } else if self.z < self.z {
-            return Some(Ordering::Less)
+            return Some(Ordering::Less);
         } else if self.y > other.y {
-            return Some(Ordering::Greater)
+            return Some(Ordering::Greater);
         } else if self.y < other.y {
-            return Some(Ordering::Less)
+            return Some(Ordering::Less);
         } else if self.x > other.x {
-            return Some(Ordering::Greater)
+            return Some(Ordering::Greater);
         } else if self.x < other.x {
-            return Some(Ordering::Less)
+            return Some(Ordering::Less);
         } else {
-            return Some(Ordering::Equal)
+            return Some(Ordering::Equal);
         }
     }
 }
-
 
 #[allow(unused_imports)]
 mod tests {
@@ -56,10 +53,10 @@ mod tests {
 
     #[test]
     fn position_order() {
-        let t = Position{x:1,y:2,z:8};
-        let p = Position{x:1,y:0,z:1};
-        let q = Position{x:0,y:1,z:1};
-        let y = Position{x:1,y:0,z:1};
+        let t = Position { x: 1, y: 2, z: 8 };
+        let p = Position { x: 1, y: 0, z: 1 };
+        let q = Position { x: 0, y: 1, z: 1 };
+        let y = Position { x: 1, y: 0, z: 1 };
 
         assert!(p < t);
         assert!(p < q);
@@ -69,11 +66,13 @@ mod tests {
     }
 
     #[test]
-    fn position_list(){
-        let v = [Position{x:1,y:0,z:1},
-                 Position{x:1,y:2,z:8},
-                 Position{x:0,y:1,z:1}];
+    fn position_list() {
+        let v = [
+            Position { x: 1, y: 0, z: 1 },
+            Position { x: 1, y: 2, z: 8 },
+            Position { x: 0, y: 1, z: 1 },
+        ];
         let max = max_position(&v);
-        assert_eq!(max, &Position{x:1,y:2,z:8});
+        assert_eq!(max, &Position { x: 1, y: 2, z: 8 });
     }
 }
