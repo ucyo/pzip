@@ -193,3 +193,192 @@ impl CompressedFile<f64> for Sink<f64> {
         Ok(())
     }
 }
+
+
+#[allow(unused_imports)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn trait_write_f32_to_file() {
+        let filename = String::from("/tmp/output.raw");
+        let v = 213.232_f32;
+
+        let mut sink: Sink<f32> = Sink::new(&filename);
+        sink.put(v).expect("Writing unsuccessfull");
+        sink.flush().expect("Writing unsuccessfull");
+
+        let mut source: Source<f32> = Source::new(&filename);
+        let value = source.get();
+
+        std::fs::remove_file(&filename).expect("Error");
+        assert_eq!(v, value)
+    }
+
+    #[test]
+    fn trait_write_f32s_to_file() {
+        let filename = String::from("/tmp/output.raw");
+        let values = [213.236_f32, 839.9482_f32, 94.32_f32];
+
+        let mut sink: Sink<f32> = Sink::new(&filename);
+        sink.put_all(&values).expect("Writing unsuccessfull");
+        sink.flush().expect("Writing unsuccessfull");
+
+        let mut source: Source<f32> = Source::new(&filename);
+        source.load().expect("Load unsuccessfull");
+
+        for i in 0..3 {
+            assert_eq!(source.ix(i), &values[i])
+        }
+        std::fs::remove_file(&filename).expect("Error");
+    }
+
+
+
+    #[test]
+    fn trait_read_first_f32_from_file() {
+        let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+
+        let mut source: Source<f32> = Source::new(&filename);
+        let first = source.get();
+        assert_eq!(first, 160.57284545898_f32)
+    }
+
+
+    #[test]
+    fn trait_read_f32_from_file() {
+        let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+
+        let mut source: Source<f32> = Source::new(&filename);
+        source.load().expect("Error loading the data");
+
+        let expected = [160.57284545898_f32,
+                        160.47055053711_f32,
+                        160.36930847168_f32];
+        for i in 0..3 {
+            assert_eq!(source.ix(i), &expected[i]);
+        }
+    }
+
+
+#[test]
+fn trait_write_f64_to_file() {
+    let filename = String::from("/tmp/output.raw");
+    let v = 213.232_f64;
+
+    let mut sink: Sink<f64> = Sink::new(&filename);
+    sink.put(v).expect("Writing unsuccessfull");
+    sink.flush().expect("Writing unsuccessfull");
+
+    let mut source: Source<f64> = Source::new(&filename);
+    let value = source.get();
+
+    std::fs::remove_file(&filename).expect("Error");
+    assert_eq!(v, value)
+}
+
+#[test]
+fn trait_write_f64s_to_file() {
+    let filename = String::from("/tmp/output.raw");
+    let values = [324234.423234_f64, 9291.822_f64, 1.23131_f64];
+
+    let mut sink: Sink<f64> = Sink::new(&filename);
+    sink.put_all(&values).expect("Writing unsuccessfull");
+    sink.flush().expect("Writing unsuccessfull");
+
+    let mut source: Source<f64> = Source::new(&filename);
+    source.load().expect("Load unsuccessfull");
+
+    for i in 0..3 {
+        assert_eq!(source.ix(i), &values[i])
+    }
+    std::fs::remove_file(&filename).expect("Error");
+}
+
+
+
+#[test]
+fn trait_read_first_f64_from_file() {
+    let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+
+    let mut source: Source<f64> = Source::new(&filename);
+    let first = source.get();
+    assert_eq!(first, 2.318024477526355e+15_f64)
+}
+
+
+#[test]
+fn trait_read_f64_from_file() {
+    let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+
+    let mut source: Source<f64> = Source::new(&filename);
+    source.load().expect("Error loading the data");
+
+    let expected = [2.318024477526355e+15_f64, 2.2897421178755255e+15_f64,
+                    2.262535647532541e+15_f64];
+    for i in 0..3 {
+        assert_eq!(source.ix(i), &expected[i]);
+    }
+}
+
+
+#[test]
+fn trait_write_byte_to_file() {
+
+    let filename = String::from("/tmp/output.raw");
+    let v = 213_u8;
+
+    let mut sink: Sink<u8> = Sink::new(&filename);
+    sink.put(v).expect("Writing unsuccessfull");
+    sink.flush().expect("Writing unsuccessfull");
+
+    let mut source: Source<u8> = Source::new(&filename);
+    let value = source.get();
+
+    std::fs::remove_file(&filename).expect("Error");
+    assert_eq!(v, value)
+}
+
+#[test]
+fn trait_write_bytes_to_file() {
+    let filename = String::from("/tmp/output.raw");
+    let values = [123_u8, 193_u8, 201_u8];
+
+    let mut sink: Sink<u8> = Sink::new(&filename);
+    sink.put_all(&values).expect("Writing unsuccessfull");
+    sink.flush().expect("Writing unsuccessfull");
+
+    let mut source: Source<u8> = Source::new(&filename);
+    source.load().expect("Load unsuccessfull");
+
+    for i in 0..3 {
+        assert_eq!(source.ix(i), &values[i])
+    }
+    std::fs::remove_file(&filename).expect("Error");
+}
+
+
+#[test]
+fn trait_read_first_byte_from_file() {
+    let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+
+    let mut source: Source<u8> = Source::new(&filename);
+    let first = source.get();
+    assert_eq!(first, 166u8)
+}
+
+#[test]
+fn trait_read_bytes_from_file() {
+    let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+
+    let mut source: Source<u8> = Source::new(&filename);
+    source.load().expect("Error loading the data");
+
+    let expected = [166_u8, 146_u8, 32_u8];
+    for i in 0..3 {
+        assert_eq!(source.ix(i), &expected[i]);
+    }
+}
+
+
+}
