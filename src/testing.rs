@@ -199,6 +199,21 @@ mod tests {
     use super::*;
 
     #[test]
+    fn readin_k_f32_values() {
+        let filename = "/home/ucyo/rust/pzip/data/subset.bin".to_string();
+        let values = read_first_k_f32(&filename, 3);
+
+        let expected = [
+            160.57284545898_f32,
+            160.47055053711_f32,
+            160.36930847168_f32,
+        ];
+        for i in 0..3 {
+            assert_eq!(&values[i], &expected[i]);
+        }
+    }
+
+    #[test]
     fn trait_write_f32_to_file() {
         let filename = String::from("/tmp/output.raw");
         let v = 213.232_f32;

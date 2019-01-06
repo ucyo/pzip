@@ -27,10 +27,10 @@ fn compression_using_last_value_all_once() {
     let prediction = pzip::Setup::new(&input, shape, weights);
     prediction.write(&output);
 
-    let origin  = pzip::read_first_k_f32(&input, 10);
-    let outcome = pzip::read_first_k_f32(&output, 10);
+    let origin = pzip::testing::read_first_k_f32(&input, 10);
+    let outcome = pzip::testing::read_first_k_f32(&output, 10);
 
     for i in 1..10 {
-        assert_eq!(origin[i-1], outcome[i]);
+        assert_eq!(origin[i - 1], outcome[i]);
     }
 }
