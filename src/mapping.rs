@@ -13,7 +13,21 @@ pub trait Mapping {
     }
 }
 
-pub struct Raw {}
+pub trait Intramapping {
+    fn to_new(num: u32) -> u32 {
+        num ^ (num >> 1)
+    }
+    fn from_new(mut num: u32) -> u32 {
+        let mut mask = num >> 1;
+        while mask != 0 {
+            num = num ^ mask;
+            mask = mask >> 1;
+        }
+        num
+    }
+}
+pub struct ClassicGray {}
+impl Intramapping for ClassicGray {}
 
 pub struct Raw {}
 impl Mapping for Raw {}
