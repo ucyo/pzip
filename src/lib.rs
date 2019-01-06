@@ -4,7 +4,6 @@
 ///
 /// # pzip
 /// A compression library for floating point data
-///
 pub mod mapping;
 pub mod position;
 pub mod testing;
