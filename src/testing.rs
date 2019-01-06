@@ -234,7 +234,7 @@ mod tests {
 
     #[test]
     fn trait_read_first_f32_from_file() {
-        let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+        let filename = "/home/ucyo/rust/pzip/data/subset.bin".to_string();
 
         let mut source: Source<f32> = Source::new(&filename);
         let first = source.get();
@@ -243,7 +243,7 @@ mod tests {
 
     #[test]
     fn trait_read_f32_from_file() {
-        let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+        let filename = "/home/ucyo/rust/pzip/data/subset.bin".to_string();
 
         let mut source: Source<f32> = Source::new(&filename);
         source.load().expect("Error loading the data");
@@ -294,7 +294,7 @@ mod tests {
 
     #[test]
     fn trait_read_first_f64_from_file() {
-        let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+        let filename = "/home/ucyo/rust/pzip/data/subset.bin".to_string();
 
         let mut source: Source<f64> = Source::new(&filename);
         let first = source.get();
@@ -303,7 +303,7 @@ mod tests {
 
     #[test]
     fn trait_read_f64_from_file() {
-        let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+        let filename = "/home/ucyo/rust/pzip/data/subset.bin".to_string();
 
         let mut source: Source<f64> = Source::new(&filename);
         source.load().expect("Error loading the data");
@@ -354,7 +354,7 @@ mod tests {
 
     #[test]
     fn trait_read_first_byte_from_file() {
-        let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+        let filename = "/home/ucyo/rust/pzip/data/subset.bin".to_string();
 
         let mut source: Source<u8> = Source::new(&filename);
         let first = source.get();
@@ -363,7 +363,7 @@ mod tests {
 
     #[test]
     fn trait_read_bytes_from_file() {
-        let filename = "/home/ucyo/Developments/big_files/subset.raw".to_string();
+        let filename = "/home/ucyo/rust/pzip/data/subset.bin".to_string();
 
         let mut source: Source<u8> = Source::new(&filename);
         source.load().expect("Error loading the data");
