@@ -194,6 +194,16 @@ impl CompressedFile<f64> for Sink<f64> {
     }
 }
 
+pub fn read_first_k_f32(filename: &String, size: usize) -> Vec<f32> {
+    let mut result = vec![0f32; size];
+    let mut file: Source<f32> = Source::new(filename);
+    file.load().unwrap();
+    for i in 0..size {
+        result[i] = *file.ix(i);
+    }
+    result
+}
+
 #[allow(unused_imports)]
 mod tests {
     use super::*;
