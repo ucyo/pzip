@@ -112,7 +112,7 @@ pub fn predictions(mut p: Predictor) -> impl Generator<Yield = f64, Return = ()>
                                        .sum();
 
                         //method 2
-                        let mut result = 0f64;
+                        // let mut result = 0f64;
                         // for (w,pi) in &p.weights {
                         //     result += *w as f64 * p.traversal.fetch(pi.z, pi.y, pi.x);
                         // }
