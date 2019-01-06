@@ -7,10 +7,10 @@ fn compression_using_last_value_asbytes() {
         y: 181,
         x: 361,
     };
-    let weights = [(1, pzip::Position { z: 0, y: 0, x: 1 })];
+    let weights = vec![(1, pzip::Position { z: 0, y: 0, x: 1 })];
 
-    let prediction = pzip::Setup::new(input, shape, weights);
-    prediction.write_bytes(output);
+    let prediction = pzip::Setup::new(&input, shape, weights);
+    prediction.write_bytes(&output);
 }
 
 #[test]
@@ -22,7 +22,7 @@ fn compression_using_last_value_all_once() {
         y: 181,
         x: 361,
     };
-    let weights = [(1, pzip::Position { z: 0, y: 0, x: 1 })];
+    let weights = vec![(1, pzip::Position { z: 0, y: 0, x: 1 }),];
 
     let prediction = pzip::Setup::new(&input, shape, weights);
     prediction.write(&output);
