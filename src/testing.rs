@@ -204,6 +204,16 @@ pub fn read_first_k_f32(filename: &String, size: usize) -> Vec<f32> {
     result
 }
 
+pub fn read_first_k_f64(filename: &String, size: usize) -> Vec<f64> {
+    let mut result = vec![0f64; size];
+    let mut file: Source<f64> = Source::new(filename);
+    file.load().unwrap();
+    for i in 0..size {
+        result[i] = *file.ix(i);
+    }
+    result
+}
+
 #[allow(unused_imports)]
 mod tests {
     use super::*;
