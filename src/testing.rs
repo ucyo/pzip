@@ -20,11 +20,11 @@ pub trait CompressedFile<T> {
 
 pub struct Source<T> {
     file: fs::File,
-    data: Vec<T>,
+    pub data: Vec<T>,
 }
 pub struct Sink<T> {
     file: fs::File,
-    data: PhantomData<T>,
+    pub data: PhantomData<T>,
 }
 
 impl FileToBeCompressed<u8> for Source<u8> {
