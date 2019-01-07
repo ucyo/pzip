@@ -48,24 +48,33 @@ impl Setup<f64> {
         Predictor {traversal, weights:self.weights, data:self.source.data} // fix for f32
     }
 
-    pub fn write(self, output: &String) -> Result<(), io::Error> {
+    pub fn write(self, output: &String) -> () {
         let p = self.to_predictor();
         let generator_iterator = GeneratorIteratorAdapter(predictions(p));
         let results: Vec<f64> = generator_iterator.collect();
+        let mut tmp: Vec<u8> = Vec::new();
+        for n in results {
+                let _ = tmp.write_f64::<LittleEndian>(n);
+        }
+        use byteorder::{LittleEndian, WriteBytesExt};
+        use std::io::{Write};
+        use std::fs::File;
 
-        let mut out: Sink<f64> = Sink::new(output);
-        out.put_all(&results)?;
-        out.flush()?;
-        Ok(())
+        let mut output = File::create(output).unwrap();
+        output.write_all(tmp.as_slice()).unwrap();
+        // let mut out: Sink<f64> = Sink::new(output);
+        // out.put_all(&results)?;
+        // out.flush()?;
+        // Ok(())
     }
-    pub fn write_bytes(self, output: &String) -> Result<(), io::Error> {
+    pub fn write_bytes(self, output: &String) -> (){
         let p = self.to_predictor();
         let generator_iterator = GeneratorIteratorAdapter(predictions(p));
-        let mut out: Sink<f64> = Sink::new(output);
-        for value in generator_iterator {
-            out.put(value)?;
-        }
-        out.flush()?;
-        Ok(())
+        // let mut out: Sink<f64> = Sink::new(output);
+        // for value in generator_iterator {
+        //     out.put(value)?;
+        // }
+        // out.flush()?;
+        // Ok(())
     }
 }
