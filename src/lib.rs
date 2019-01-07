@@ -57,24 +57,10 @@ impl Setup<f64> {
                 let _ = tmp.write_f64::<LittleEndian>(n);
         }
         use byteorder::{LittleEndian, WriteBytesExt};
-        use std::io::{Write};
+        use std::io::{Write, BufWriter};
         use std::fs::File;
 
-        let mut output = File::create(output).unwrap();
+        let mut output = BufWriter::new(File::create(output).unwrap());
         output.write_all(tmp.as_slice()).unwrap();
-        // let mut out: Sink<f64> = Sink::new(output);
-        // out.put_all(&results)?;
-        // out.flush()?;
-        // Ok(())
-    }
-    pub fn write_bytes(self, output: &String) -> (){
-        let p = self.to_predictor();
-        let generator_iterator = GeneratorIteratorAdapter(predictions(p));
-        // let mut out: Sink<f64> = Sink::new(output);
-        // for value in generator_iterator {
-        //     out.put(value)?;
-        // }
-        // out.flush()?;
-        // Ok(())
     }
 }
