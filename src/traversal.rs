@@ -1,7 +1,12 @@
+use std::ops::{Mul,AddAssign};
+use std::convert::From;
+use std::iter::Sum;
+use std::ops::{Generator, GeneratorState};
+
 use super::position::Position;
 
 #[derive(Debug)]
-pub struct Traversal {
+pub struct Traversal<T> {
     nz: usize,
     ny: usize,
     nx: usize,
@@ -9,9 +14,9 @@ pub struct Traversal {
     dy: usize,
     dx: usize,
     m: usize,
-    a: Vec<f64>,
+    a: Vec<T>,
     ix: usize,
-    zero: f64,
+    zero: T,
 }
 
 pub fn next_power_2(mut val: usize) -> usize {
@@ -21,17 +26,17 @@ pub fn next_power_2(mut val: usize) -> usize {
     val + 1
 }
 
-impl Traversal {
-    pub fn new(nz: usize, ny: usize, nx: usize) -> Traversal {
+impl<T: Clone+Default> Traversal<T> {
+    pub fn new(nz: usize, ny: usize, nx: usize) -> Self {
         let dx = 1;
         let dy = nx + 1;
         let dz = dy * (ny + 1);
 
         let sum = dz + dy + dx - 1;
         let m = next_power_2(sum) - 1;
-        let a = vec![0f64; m + 1];
+        let a = vec![Default::default(); m + 1];
         let ix = 0;
-        let zero = 0f64;
+        let zero = Default::default();
 
         Traversal {
             nz,
@@ -50,25 +55,25 @@ impl Traversal {
         let n = self.dz * z + self.dy * y + self.dx * x;
         self.push(self.zero, n);
     }
-    pub fn push(&mut self, val: f64, mut n: usize) {
+    pub fn push(&mut self, val: T, mut n: usize) {
         while n > 0 {
             self.a[self.ix & self.m] = val;
             self.ix += 1;
             n -= 1;
         }
     }
-    pub fn fetch(&self, z: usize, y: usize, x: usize) -> f64 {
+    pub fn fetch(&self, z: usize, y: usize, x: usize) -> &T {
         let pos = self.ix - (self.dz * z + self.dy * y + self.dx * x);
-        self.a[pos & self.m]
+        &self.a[pos & self.m]
     }
 }
 
-pub fn predict(
-    data: &Vec<f64>,
+pub fn predict<T: Clone+AddAssign<<T as Mul>::Output>+Default+From<i32>+Mul>(
+    data: &Vec<T>,
     at: usize,
-    traversal: &mut Traversal,
-    weights: &Vec<(i32, Position)>,
-) -> f64 {
+    traversal: &mut Traversal<T>,
+    weights: &Vec<(i32, Position)>
+) -> T {
     let mut data_ix = 0usize;
     traversal.advance(1, 0, 0);
     'outer: for _ in 0..traversal.nz {
@@ -77,7 +82,6 @@ pub fn predict(
             traversal.advance(0, 0, 1);
             for _ in 0..traversal.nx {
                 let a = data[data_ix];
-                println!("Pushed {:?}", traversal);
                 if data_ix == at {
                     break 'outer;
                 }
@@ -86,22 +90,21 @@ pub fn predict(
             }
         }
     }
-    let mut result = 0f64;
+    let mut result = Default::default();
     for (w, p) in weights {
-        result += *w as f64 * traversal.fetch(p.z, p.y, p.x);
+        result += T::from(*w) * *traversal.fetch(p.z, p.y, p.x);
     }
     result
 }
 
-use std::ops::{Generator, GeneratorState};
 
-pub struct Predictor {
-    pub traversal: Traversal,
+pub struct Predictor<T> {
+    pub traversal: Traversal<T>,
     pub weights: Vec<(i32, Position)>,
-    pub data: Vec<f64>,
+    pub data: Vec<T>,
 }
 #[allow(dead_code)]
-pub fn predictions(mut p: Predictor) -> impl Generator<Yield = f64, Return = ()> {
+pub fn predictions<'a, T: Clone+Default+Mul+From<i32>+Sum<<T as Mul>::Output>>(mut p: Predictor<T>) -> impl Generator<Yield = &'a T, Return = ()> + 'a {
     move || {
         let mut data_ix = 0usize;
         while data_ix < p.data.len() {
@@ -111,17 +114,16 @@ pub fn predictions(mut p: Predictor) -> impl Generator<Yield = f64, Return = ()>
                 for _ in 0..p.traversal.ny {
                     p.traversal.advance(0, 0, 1);
                     for _ in 0..p.traversal.nx {
-                        let a = p.data[data_ix];
+                        let a = &p.data[data_ix];
 
                         // This needs to be bench tested using criterion:
                         // Which implementation is faster than the other?
 
                         // method 1
-                        yield p
-                            .weights
-                            .iter()
-                            .map(|(w, f)| *w as f64 * p.traversal.fetch(f.z, f.y, f.x))
-                            .sum();
+                        yield &p.weights
+                               .into_iter()
+                               .map(|(w, f)| T::from(w) * *p.traversal.fetch(f.z, f.y, f.x))
+                               .sum();
 
                         //method 2
                         // let mut result = 0f64;
@@ -130,7 +132,7 @@ pub fn predictions(mut p: Predictor) -> impl Generator<Yield = f64, Return = ()>
                         // }
                         // yield result;
 
-                        p.traversal.push(a, 1);
+                        p.traversal.push(*a, 1);
                         data_ix += 1;
                     }
                 }
@@ -193,7 +195,7 @@ mod tests {
         };
 
         let generator_iterator = GeneratorIteratorAdapter(predictions(p));
-        let results: Vec<f64> = generator_iterator.collect();
+        let results: Vec<f64> = generator_iterator.map(|x| *x).collect();
         assert_eq!(
             results,
             vec![

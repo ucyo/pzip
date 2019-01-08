@@ -10,9 +10,7 @@ pub mod position;
 pub mod testing;
 pub mod traversal;
 
-use std::io;
 use testing::{FileToBeCompressed, Source};
-use testing::{CompressedFile, Sink};
 use traversal::{Traversal, Predictor};
 use position::Position;
 use traversal::{GeneratorIteratorAdapter, predictions};
@@ -51,7 +49,7 @@ impl Setup<f64> {
     pub fn write(self, output: &String) -> () {
         let p = self.to_predictor();
         let generator_iterator = GeneratorIteratorAdapter(predictions(p));
-        let results: Vec<f64> = generator_iterator.collect();
+        let results: Vec<f64> = generator_iterator.map(|x| *x).collect();
         let mut tmp: Vec<u8> = Vec::new();
         for n in results {
                 let _ = tmp.write_f64::<LittleEndian>(n);
