@@ -8,6 +8,7 @@ extern crate criterion;
 
 use criterion::Criterion;
 use pzip::position::Position;
+use pzip::Weight;
 use pzip::traversal::{predictions, GeneratorIteratorAdapter, Predictor, Traversal};
 
 fn get_all_predictions() {
@@ -17,14 +18,14 @@ fn get_all_predictions() {
     ];
     let tr = Traversal::new(3, 3, 3);
 
-    let mut weights: Vec<(i32, Position)> = Vec::new();
-    weights.push((1, Position { x: 1, y: 0, z: 0 }));
-    weights.push((1, Position { x: 1, y: 1, z: 0 }));
-    weights.push((1, Position { x: 1, y: 0, z: 1 }));
-    weights.push((1, Position { x: 0, y: 1, z: 1 }));
-    weights.push((1, Position { x: 1, y: 0, z: 1 }));
-    weights.push((1, Position { x: 0, y: 0, z: 1 }));
-    weights.push((1, Position { x: 0, y: 1, z: 0 }));
+    let mut weights: Vec<Weight> = Vec::new();
+    weights.push(Weight{coeff: 1, pos: Position { x: 1, y: 0, z: 0 }});
+    weights.push(Weight{coeff: 1, pos: Position { x: 1, y: 1, z: 0 }});
+    weights.push(Weight{coeff: 1, pos: Position { x: 1, y: 0, z: 1 }});
+    weights.push(Weight{coeff: 1, pos: Position { x: 0, y: 1, z: 1 }});
+    weights.push(Weight{coeff: 1, pos: Position { x: 1, y: 0, z: 1 }});
+    weights.push(Weight{coeff: 1, pos: Position { x: 0, y: 0, z: 1 }});
+    weights.push(Weight{coeff: 1, pos: Position { x: 0, y: 1, z: 0 }});
 
     let mut p = Predictor {
         traversal: tr,

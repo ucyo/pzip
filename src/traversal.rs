@@ -3,6 +3,7 @@ use std::convert::From;
 use std::ops::{Generator, GeneratorState};
 
 use super::position::Position;
+use super::Weight;
 
 #[derive(Debug)]
 pub struct Traversal<T> {
@@ -99,11 +100,11 @@ pub fn predict<T: Copy+Clone+AddAssign<<T as Mul>::Output>+Default+From<i32>+Mul
 
 pub struct Predictor<T> {
     pub traversal: Traversal<T>,
-    pub weights: Vec<(i32, Position)>,
+    pub weights: Vec<Weight>,
     pub data: Vec<T>,
 }
 #[allow(dead_code)]
-pub fn predictions<'a, T: Clone+AddAssign<<T as Mul>::Output>+Copy+Default+Mul+From<i32>>(p: &'a mut Predictor<T>) -> impl Generator<Yield = T, Return = ()> + 'a {
+pub fn predictions<'a, T: Clone+AddAssign<<T as Mul>::Output>+Copy+Default+Mul+From<i16>>(p: &'a mut Predictor<T>) -> impl Generator<Yield = T, Return = ()> + 'a {
     move || {
         let mut data_ix = 0usize;
         while data_ix < p.data.len() {
@@ -116,8 +117,8 @@ pub fn predictions<'a, T: Clone+AddAssign<<T as Mul>::Output>+Copy+Default+Mul+F
                         let a = &p.data[data_ix];
 
                         let mut result = T::default();
-                        for (w,pi) in &p.weights {
-                            let coeff = *p.traversal.fetch(pi.z, pi.y, pi.x) * T::from(*w);
+                        for w in &p.weights {
+                            let coeff = *p.traversal.fetch(w.pos.z, w.pos.y, w.pos.x) * T::from(w.coeff);
                             result += coeff;
                         }
                         yield result;
@@ -174,8 +175,8 @@ mod tests {
         ];
         let tr = Traversal::new(3, 3, 3);
 
-        let mut weights: Vec<(i32, Position)> = Vec::new();
-        weights.push((1, Position { x: 1, y: 0, z: 0 }));
+        let mut weights: Vec<Weight> = Vec::new();
+        weights.push(Weight{coeff: 1, pos: Position { x: 1, y: 0, z: 0 }});
 
         let mut p = Predictor {
             traversal: tr,
