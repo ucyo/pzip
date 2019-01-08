@@ -1,6 +1,6 @@
 
 use pzip::position::Position;
-
+use pzip::Setup;
 
 #[test]
 fn compression_using_last_value_all_once() {
@@ -13,8 +13,8 @@ fn compression_using_last_value_all_once() {
     };
     let weights = vec![(1, Position { z: 0, y: 0, x: 1 }),];
 
-    let prediction = pzip::Setup::new(&input, shape, weights);
-    prediction.write(&output);//.unwrap();
+    let prediction: Setup<f64> = Setup::new(&input, shape, weights);
+    prediction.write(&output);
 
     let origin = pzip::testing::read_first_k_f64(&input, 360);
     let outcome = pzip::testing::read_first_k_f64(&output, 360);
