@@ -1,6 +1,5 @@
 use std::ops::{Mul,AddAssign};
 use std::convert::From;
-use std::iter::Sum;
 use std::ops::{Generator, GeneratorState};
 
 use super::position::Position;
@@ -26,7 +25,7 @@ pub fn next_power_2(mut val: usize) -> usize {
     val + 1
 }
 
-impl<T: Clone+Default> Traversal<T> {
+impl<T: Clone+Default+Copy> Traversal<T> {
     pub fn new(nz: usize, ny: usize, nx: usize) -> Self {
         let dx = 1;
         let dy = nx + 1;
@@ -53,11 +52,11 @@ impl<T: Clone+Default> Traversal<T> {
     }
     pub fn advance(&mut self, z: usize, y: usize, x: usize) {
         let n = self.dz * z + self.dy * y + self.dx * x;
-        self.push(self.zero, n);
+        self.push(&Default::default(), n);
     }
-    pub fn push(&mut self, val: T, mut n: usize) {
+    pub fn push(&mut self, val: &T, mut n: usize) {
         while n > 0 {
-            self.a[self.ix & self.m] = val;
+            self.a[self.ix & self.m] = *val;
             self.ix += 1;
             n -= 1;
         }
@@ -68,7 +67,7 @@ impl<T: Clone+Default> Traversal<T> {
     }
 }
 
-pub fn predict<T: Clone+AddAssign<<T as Mul>::Output>+Default+From<i32>+Mul>(
+pub fn predict<T: Copy+Clone+AddAssign<<T as Mul>::Output>+Default+From<i32>+Mul>(
     data: &Vec<T>,
     at: usize,
     traversal: &mut Traversal<T>,
@@ -81,7 +80,7 @@ pub fn predict<T: Clone+AddAssign<<T as Mul>::Output>+Default+From<i32>+Mul>(
         for _ in 0..traversal.ny {
             traversal.advance(0, 0, 1);
             for _ in 0..traversal.nx {
-                let a = data[data_ix];
+                let a = &data[data_ix];
                 if data_ix == at {
                     break 'outer;
                 }
@@ -104,7 +103,7 @@ pub struct Predictor<T> {
     pub data: Vec<T>,
 }
 #[allow(dead_code)]
-pub fn predictions<'a, T: Clone+Default+Mul+From<i32>+Sum<<T as Mul>::Output>>(mut p: Predictor<T>) -> impl Generator<Yield = &'a T, Return = ()> + 'a {
+pub fn predictions<'a, T: Clone+AddAssign<<T as Mul>::Output>+Copy+Default+Mul+From<i32>>(p: &'a mut Predictor<T>) -> impl Generator<Yield = T, Return = ()> + 'a {
     move || {
         let mut data_ix = 0usize;
         while data_ix < p.data.len() {
@@ -116,23 +115,13 @@ pub fn predictions<'a, T: Clone+Default+Mul+From<i32>+Sum<<T as Mul>::Output>>(m
                     for _ in 0..p.traversal.nx {
                         let a = &p.data[data_ix];
 
-                        // This needs to be bench tested using criterion:
-                        // Which implementation is faster than the other?
-
-                        // method 1
-                        yield &p.weights
-                               .into_iter()
-                               .map(|(w, f)| T::from(w) * *p.traversal.fetch(f.z, f.y, f.x))
-                               .sum();
-
-                        //method 2
-                        // let mut result = 0f64;
-                        // for (w,pi) in &p.weights {
-                        //     result += *w as f64 * p.traversal.fetch(pi.z, pi.y, pi.x);
-                        // }
-                        // yield result;
-
-                        p.traversal.push(*a, 1);
+                        let mut result = T::default();
+                        for (w,pi) in &p.weights {
+                            let coeff = *p.traversal.fetch(pi.z, pi.y, pi.x) * T::from(*w);
+                            result += coeff;
+                        }
+                        yield result;
+                        p.traversal.push(a, 1);
                         data_ix += 1;
                     }
                 }
@@ -188,14 +177,14 @@ mod tests {
         let mut weights: Vec<(i32, Position)> = Vec::new();
         weights.push((1, Position { x: 1, y: 0, z: 0 }));
 
-        let p = Predictor {
+        let mut p = Predictor {
             traversal: tr,
             weights: weights,
             data: data,
         };
 
-        let generator_iterator = GeneratorIteratorAdapter(predictions(p));
-        let results: Vec<f64> = generator_iterator.map(|x| *x).collect();
+        let generator_iterator = GeneratorIteratorAdapter(predictions(&mut p));
+        let results: Vec<f64> = generator_iterator.collect();
         assert_eq!(
             results,
             vec![

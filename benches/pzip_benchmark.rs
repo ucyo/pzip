@@ -26,13 +26,13 @@ fn get_all_predictions() {
     weights.push((1, Position { x: 0, y: 0, z: 1 }));
     weights.push((1, Position { x: 0, y: 1, z: 0 }));
 
-    let p = Predictor {
+    let mut p = Predictor {
         traversal: tr,
         weights: weights,
         data: data,
     };
 
-    let generator_iterator = GeneratorIteratorAdapter(predictions(p));
+    let generator_iterator = GeneratorIteratorAdapter(predictions(&mut p));
     let _: Vec<f64> = generator_iterator.collect();
 }
 

@@ -40,16 +40,16 @@ impl Setup<f64> {
         Setup {source, shape, weights}
     }
 
-    fn to_predictor(mut self) -> Predictor {
+    fn to_predictor(mut self) -> Predictor<f64> {
         self.source.load().expect("Error while loading data");
         let traversal = Traversal::new(self.shape.z, self.shape.y, self.shape.x);
         Predictor {traversal, weights:self.weights, data:self.source.data} // fix for f32
     }
 
     pub fn write(self, output: &String) -> () {
-        let p = self.to_predictor();
-        let generator_iterator = GeneratorIteratorAdapter(predictions(p));
-        let results: Vec<f64> = generator_iterator.map(|x| *x).collect();
+        let mut p = self.to_predictor();
+        let generator_iterator = GeneratorIteratorAdapter(predictions(&mut p));
+        let results: Vec<f64> = generator_iterator.collect();
         let mut tmp: Vec<u8> = Vec::new();
         for n in results {
                 let _ = tmp.write_f64::<LittleEndian>(n);
