@@ -19,10 +19,7 @@ pub struct Traversal<T> {
     zero: T,
 }
 
-pub fn next_power_2(mut val: usize) -> usize {
-    while val & (val + 1) != 0 {
-        val = val | (val + 1)
-    }
+impl<T: Clone + Default + Copy> Traversal<T> {
     val + 1
 }
 
