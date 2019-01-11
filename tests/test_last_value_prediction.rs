@@ -1,4 +1,3 @@
-
 use pzip::position::Position;
 use pzip::{Setup, Weight};
 
@@ -11,7 +10,10 @@ fn compression_using_last_value_all_once_f64() {
         y: 181,
         x: 361,
     };
-    let weights = vec![Weight{coeff: 1, pos: Position { z: 0, y: 0, x: 1 }}];
+    let weights = vec![Weight {
+        coeff: 1,
+        pos: Position { z: 0, y: 0, x: 1 },
+    }];
 
     let prediction = Setup::<f64>::new(&input, shape, weights);
     prediction.write(&output);
@@ -26,7 +28,6 @@ fn compression_using_last_value_all_once_f64() {
     std::fs::remove_file(&output).expect("Error");
 }
 
-
 #[test]
 fn compression_using_last_value_all_once_f32() {
     let input = String::from("/home/ucyo/rust/pzip/data/pres.1-90-181-361.f32.bin");
@@ -36,7 +37,10 @@ fn compression_using_last_value_all_once_f32() {
         y: 181,
         x: 361,
     };
-    let weights = vec![Weight{coeff: 1, pos: Position { z: 0, y: 0, x: 1 }},];
+    let weights = vec![Weight {
+        coeff: 1,
+        pos: Position { z: 0, y: 0, x: 1 },
+    }];
 
     let prediction = Setup::<f32>::new(&input, shape, weights);
     prediction.write(&output);
@@ -46,7 +50,7 @@ fn compression_using_last_value_all_once_f32() {
 
     for i in 362..623 {
         println!("{} {} {}", i, origin[i - 1], outcome[i]);
-        assert_eq!(origin[i-1], outcome[i]);
+        assert_eq!(origin[i - 1], outcome[i]);
     }
     std::fs::remove_file(&output).expect("Error");
 }
