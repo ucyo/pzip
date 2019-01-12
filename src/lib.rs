@@ -9,6 +9,7 @@ pub mod mapping;
 pub mod position;
 pub mod testing;
 pub mod traversal;
+pub mod config;
 
 use position::Position;
 use testing::{FileToBeCompressed, Source};
@@ -16,6 +17,7 @@ use traversal::{predictions, GeneratorIteratorAdapter};
 use traversal::{Predictor, Traversal};
 
 #[allow(dead_code)]
+#[derive(Debug, PartialEq)]
 pub struct Shape {
     pub x: usize,
     pub y: usize,
