@@ -19,7 +19,7 @@ pub struct Traversal<T> {
     zero: T,
 }
 
-impl<T: Clone + Default + Copy> Traversal<T> {
+impl<T: Default + Copy> Traversal<T> {
     pub fn new(nz: usize, ny: usize, nx: usize) -> Self {
         let dx = 1;
         let dy = nx + 1;
@@ -61,7 +61,7 @@ impl<T: Clone + Default + Copy> Traversal<T> {
     }
 }
 
-pub fn predict<T: Copy + Clone + AddAssign<<T as Mul>::Output> + Default + From<i32> + Mul>(
+pub fn predict<T: Copy + AddAssign<<T as Mul>::Output> + Default + From<i32> + Mul>(
     data: &Vec<T>,
     at: usize,
     traversal: &mut Traversal<T>,
@@ -99,7 +99,7 @@ pub struct Predictor<T> {
 #[allow(dead_code)]
 pub fn predictions<
     'a,
-    T: Clone + AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>,
+    T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>,
 >(
     p: &'a mut Predictor<T>,
 ) -> impl Generator<Yield = T, Return = ()> + 'a {
