@@ -19,13 +19,14 @@ pub enum Predictor {
 }
 
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct Config<'a> {
-    input:     &'a String,
-    output:    &'a String,
-    coding:    CodingMode,
-    filetype:  FileType,
-    shape:     Shape,
-    predictor: Predictor,
+    pub input:     &'a String,
+    pub output:    &'a String,
+    pub coding:    CodingMode,
+    pub filetype:  FileType,
+    pub shape:     Shape,
+    pub predictor: Predictor,
 }
 
 
