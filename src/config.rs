@@ -1,4 +1,4 @@
-
+use std::collections::HashMap;
 use super::Shape;
 
 #[derive(Debug, PartialEq)]
@@ -19,14 +19,66 @@ pub enum Predictor {
 }
 
 #[allow(dead_code)]
-pub struct Config {
-    input:     String,
-    output:    String,
-    cmd:       CodingMode,
+pub struct Config<'a> {
+    input:     &'a String,
+    output:    &'a String,
+    coding:    CodingMode,
     filetype:  FileType,
     shape:     Shape,
     predictor: Predictor,
 }
+
+
+
+pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
+
+    let mut cli = HashMap::new();
+    cli.insert("coding", 1);
+    cli.insert("filetype", 2);
+    cli.insert("input", 3);
+    cli.insert("output", 4);
+    cli.insert("z", 6);
+    cli.insert("y", 7);
+    cli.insert("x", 8);
+    cli.insert("predictor", 10);
+
+    let coding = if args[cli["coding"]] == "-c" {
+        CodingMode::Encode
+    } else if args[cli["coding"]] == "-d" {
+        CodingMode::Decode
+    } else {
+        panic!("Wrong coding mode")
+    };
+
+    let filetype = if args[cli["filetype"]] == "-f32" {
+        FileType::F32
+    } else if args[cli["filetype"]] == "-f64" {
+        FileType::F64
+    } else {
+        panic!("Wrong filetype")
+    };
+
+    let (input, output) = (&args[cli["input"]], &args[cli["output"]]);
+
+    assert_eq!(args[5], "-s");
+
+    let shape = Shape {
+        z: args[cli["z"]].parse::<usize>().unwrap_or(1),
+        y: args[cli["y"]].parse::<usize>().unwrap_or(1),
+        x: args[cli["x"]].parse::<usize>().unwrap_or(1),
+    };
+
+    assert_eq!(args[9], "-p");
+
+    let predictor = if args[cli["predictor"]] == "lv" {
+        Predictor::LastValue
+    } else {
+        panic!("Wrong predictor, {}", args[cli["predictor"]])
+    };
+
+    Config{input, output, coding, filetype, shape, predictor}
+}
+
 
 #[allow(unused_imports)]
 mod tests {
@@ -45,16 +97,11 @@ mod tests {
             args.push(String::from(a));
         }
         let configuration = parse_args(&args);
-        assert_eq!(configuration.cmd, CodingMode::Encode);
+        assert_eq!(configuration.coding, CodingMode::Encode);
         assert_eq!(configuration.filetype, FileType::F32);
         assert_eq!(configuration.shape, Shape{z:321, y:32, x:12});
         assert_eq!(configuration.predictor, Predictor::LastValue);
-        assert_eq!(configuration.input, args[3]);
-        assert_eq!(configuration.output, args[4]);
+        assert_eq!(*configuration.input, args[3]);
+        assert_eq!(*configuration.output, args[4]);
     }
-}
-
-pub fn parse_args(args: &Vec<String>) -> Config {
-    println!("Reading in: {:?}", args);
-    unimplemented!()
 }
