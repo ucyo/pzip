@@ -4,6 +4,8 @@ use pzip::config::FileType;
 use pzip::position::Position;
 use pzip::{Setup, Weight};
 use std::env;
+use pzip::config::MapType;
+use pzip::mapping::{Raw, Ordered};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -15,11 +17,17 @@ fn main() {
     }];
 
     if configuration.filetype == FileType::F64 {
-        let setup = Setup::<f64>::new(configuration.input, configuration.shape, lv_weights);
-        setup.write(configuration.output);
+        let setup = Setup::<f64>::new(configuration.input, configuration.shape, lv_weights);  // todo: include choosing by predictor
+        match configuration.mapping {
+            MapType::Raw => setup.write::<Raw>(configuration.output),
+            MapType::Ordered => setup.write::<Ordered>(configuration.output),
+        }
     } else if configuration.filetype == FileType::F32 {
-        let setup = Setup::<f32>::new(configuration.input, configuration.shape, lv_weights);
-        setup.write(configuration.output);
+        let setup = Setup::<f32>::new(configuration.input, configuration.shape, lv_weights);  // todo: include choosing by predictor
+        match configuration.mapping {
+            MapType::Raw => setup.write::<Raw>(configuration.output),
+            MapType::Ordered => setup.write::<Ordered>(configuration.output),
+        }
     } else {
         panic!("Error")
     }

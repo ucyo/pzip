@@ -14,6 +14,12 @@ pub enum FileType {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum MapType {
+    Raw,
+    Ordered,
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Predictor {
     LastValue,
 }
@@ -27,6 +33,7 @@ pub struct Config<'a> {
     pub filetype: FileType,
     pub shape: Shape,
     pub predictor: Predictor,
+    pub mapping: MapType,
 }
 
 pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
@@ -39,6 +46,7 @@ pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
     cli.insert("y", 7);
     cli.insert("x", 8);
     cli.insert("predictor", 10);
+    cli.insert("mapping", 12);
 
     let coding = if args[cli["coding"]] == "-c" {
         CodingMode::Encode
@@ -74,6 +82,14 @@ pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
         panic!("Wrong predictor, {}", args[cli["predictor"]])
     };
 
+    let mapping = if args[cli["mapping"]] == "raw" {
+        MapType::Raw
+    } else if args[cli["mapping"]] == "ordered" {
+        MapType::Ordered
+    } else {
+        panic!("Wrong mapping type, {}", args[cli["mapping"]])
+    };
+
     Config {
         input,
         output,
@@ -81,6 +97,7 @@ pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
         filetype,
         shape,
         predictor,
+        mapping
     }
 }
 
@@ -92,16 +109,12 @@ mod tests {
     fn test_parsing_to_config() {
         let t = vec![
             "pzip",
-            "-c",
-            "-f32",
+            "-c","-f32",
             "inputfile.bin",
             "outputfile.bin",
-            "-s",
-            "321",
-            "32",
-            "12",
-            "-p",
-            "lv",
+            "-s","321","32","12",
+            "-p","lv",
+            "-m", "raw"
         ];
         let mut args: Vec<String> = Vec::new();
         for a in t {
@@ -121,5 +134,6 @@ mod tests {
         assert_eq!(configuration.predictor, Predictor::LastValue);
         assert_eq!(*configuration.input, args[3]);
         assert_eq!(*configuration.output, args[4]);
+        assert_eq!(configuration.mapping, MapType::Raw)
     }
 }
