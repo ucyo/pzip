@@ -1,9 +1,9 @@
 extern crate pzip;
 
-use std::env;
-use pzip::{Setup, Weight};
-use pzip::position::Position;
 use pzip::config::FileType;
+use pzip::position::Position;
+use pzip::{Setup, Weight};
+use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

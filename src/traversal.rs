@@ -97,10 +97,7 @@ pub struct Predictor<T> {
 }
 
 #[allow(dead_code)]
-pub fn predictions<
-    'a,
-    T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>,
->(
+pub fn predictions<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
     p: &'a mut Predictor<T>,
 ) -> impl Generator<Yield = T, Return = ()> + 'a {
     move || {

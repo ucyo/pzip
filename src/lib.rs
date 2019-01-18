@@ -1,6 +1,7 @@
 #![feature(generators, generator_trait)]
 #![feature(uniform_paths)]
 
+pub mod config;
 /// pzip - predicted zip
 ///
 /// # pzip
@@ -9,7 +10,6 @@ pub mod mapping;
 pub mod position;
 pub mod testing;
 pub mod traversal;
-pub mod config;
 
 use position::Position;
 use testing::{FileToBeCompressed, Source};
