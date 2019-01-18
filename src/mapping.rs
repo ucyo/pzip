@@ -26,6 +26,12 @@ impl Intramapping for ClassicGray {
     }
 }
 
+pub struct Untouched {}
+impl Intramapping for Untouched {
+    fn to_new(num: u32) -> u32 { num }
+    fn from_new(num: u32) -> u32 { num }
+}
+
 pub struct Raw {}
 impl Intermapping for Raw {
     fn to_u32(from: f32) -> u32 {
