@@ -199,4 +199,14 @@ mod tests {
             assert_eq!(r, e)
         }
     }
+
+    #[test]
+    fn untouched_intramapping() {
+        let input: Vec<u32> = vec![15, 5, 6, 3, 1];
+        let result: Vec<u32> = input.iter().map(|x| Untouched::to_new(*x)).collect();
+
+        for i in 0..input.len() {
+            assert_eq!(input[i], result[i])
+        }
+    }
 }
