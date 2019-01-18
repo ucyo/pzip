@@ -1,4 +1,33 @@
-pub trait Mapping {
+pub trait Intermapping {
+    fn to_u32(from: f32) -> u32;
+    fn from_u32(from: u32) -> f32;
+    fn to_u64(from: f64) -> u64;
+    fn from_u64(from: u64) -> f64;
+}
+
+pub trait Intramapping {
+    fn to_new(num: u32) -> u32;
+    fn from_new(num: u32) -> u32;
+}
+
+pub struct ClassicGray {}
+impl Intramapping for ClassicGray {
+    fn to_new(num: u32) -> u32 {
+        num ^ (num >> 1)
+    }
+    fn from_new(num: u32) -> u32 {
+        let mut number = num;
+        let mut mask = number >> 1;
+        while mask != 0 {
+            number = number ^ mask;
+            mask = mask >> 1;
+        }
+        num
+    }
+}
+
+pub struct Raw {}
+impl Intermapping for Raw {
     fn to_u32(from: f32) -> u32 {
         unsafe { std::mem::transmute::<f32, u32>(from) }
     }
@@ -13,27 +42,8 @@ pub trait Mapping {
     }
 }
 
-pub trait Intramapping {
-    fn to_new(num: u32) -> u32 {
-        num ^ (num >> 1)
-    }
-    fn from_new(mut num: u32) -> u32 {
-        let mut mask = num >> 1;
-        while mask != 0 {
-            num = num ^ mask;
-            mask = mask >> 1;
-        }
-        num
-    }
-}
-pub struct ClassicGray {}
-impl Intramapping for ClassicGray {}
-
-pub struct Raw {}
-impl Mapping for Raw {}
-
 pub struct Ordered {}
-impl Mapping for Ordered {
+impl Intermapping for Ordered {
     fn to_u32(from: f32) -> u32 {
         let mut result = unsafe { std::mem::transmute::<f32, u32>(from) };
         result = if from < 0f32 {
