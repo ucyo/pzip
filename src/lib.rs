@@ -56,14 +56,15 @@ impl Setup<f64> {
         } // fix for f32
     }
 
-    pub fn write<H: mapping::Intermapping>(self, output: &String) -> () {
+    pub fn write<H: mapping::Intermapping, K: mapping::Intramapping>(self, output: &String) -> () {
         let mut p = self.to_predictor();
         let generator_iterator = GeneratorIteratorAdapter(predictions(&mut p));
         let results: Vec<f64> = generator_iterator.collect();
         let diff: Vec<f64> = results.iter()
-                                    .zip(p.data.iter())
-                                    .map(|(a,b)| H::to_u64(*a) ^ H::to_u64(*b))  // TODO eliminate dereferencing
-                                    .map(|x| H::from_u64(x))
+                                    .map(|a| H::to_u64(*a))
+                                    .zip(p.data.iter().map(|a|H::to_u64(*a)))
+                                    .map(|(a,b)| K::to_new_u64(a) ^ K::to_new_u64(b))  // TODO eliminate dereferencing
+                                    .map(|x| H::from_u64(K::from_new_u64(x)))
                                     .collect();
         let mut tmp: Vec<u8> = Vec::new();
         for n in diff {
@@ -98,15 +99,15 @@ impl Setup<f32> {
         } // fix for f32
     }
 
-    pub fn write<H: mapping::Intermapping>(self, output: &String) -> () {
+    pub fn write<H: mapping::Intermapping, K: mapping::Intramapping>(self, output: &String) -> () {
         let mut p = self.to_predictor();
         let generator_iterator = GeneratorIteratorAdapter(predictions(&mut p));
         let results: Vec<f32> = generator_iterator.collect();
-        let diff: Vec<f32> = results.iter()
-                                    .zip(p.data.iter())
-                                    .map(|(a,b)| H::to_u32(*a) ^ H::to_u32(*b)) // TODO eliminate dereferencing
-                                    .map(|x| H::from_u32(x))
-                                    .collect();
+        let diff: Vec<f32> = results.iter().map(|a| H::to_u32(*a))
+                                    .zip(p.data.iter().map(|a| H::to_u32(*a)))
+                                    .map(|(a,b)|  K::to_new_u32(a)^K::to_new_u32(b)) // TODO eliminate dereferencing
+                                    .map(|x| H::from_u32(K::to_new_u32(x)))
+                                    .collect(); //TODO the mapping is totally useless. One could write a Vec<u32>
 
         let mut tmp: Vec<u8> = Vec::new();
         for n in diff {

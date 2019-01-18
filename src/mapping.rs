@@ -6,16 +6,30 @@ pub trait Intermapping {
 }
 
 pub trait Intramapping {
-    fn to_new(num: u32) -> u32;
-    fn from_new(num: u32) -> u32;
+    fn to_new_u32(num: u32) -> u32;
+    fn from_new_u32(num: u32) -> u32;
+    fn to_new_u64(num: u64) -> u64;
+    fn from_new_u64(num: u64) -> u64;
 }
 
 pub struct ClassicGray {}
 impl Intramapping for ClassicGray {
-    fn to_new(num: u32) -> u32 {
+    fn to_new_u32(num: u32) -> u32 {
         num ^ (num >> 1)
     }
-    fn from_new(num: u32) -> u32 {
+    fn from_new_u32(num: u32) -> u32 {
+        let mut number = num;
+        let mut mask = number >> 1;
+        while mask != 0 {
+            number = number ^ mask;
+            mask = mask >> 1;
+        }
+        num
+    }
+    fn to_new_u64(num: u64) -> u64 {
+        num ^ (num >> 1)
+    }
+    fn from_new_u64(num: u64) -> u64 {
         let mut number = num;
         let mut mask = number >> 1;
         while mask != 0 {
@@ -28,8 +42,10 @@ impl Intramapping for ClassicGray {
 
 pub struct Untouched {}
 impl Intramapping for Untouched {
-    fn to_new(num: u32) -> u32 { num }
-    fn from_new(num: u32) -> u32 { num }
+    fn to_new_u32(num: u32) -> u32 { num }
+    fn from_new_u32(num: u32) -> u32 { num }
+    fn to_new_u64(num: u64) -> u64 { num }
+    fn from_new_u64(num: u64) -> u64 { num }
 }
 
 pub struct Raw {}
@@ -199,7 +215,7 @@ mod tests {
     fn classic_gray_codes() {
         let input: Vec<u32> = vec![15, 5, 6, 3, 1];
         let expected: Vec<u32> = vec![8, 7, 5, 2, 1];
-        let result: Vec<u32> = input.iter().map(|x| ClassicGray::to_new(*x)).collect();
+        let result: Vec<u32> = input.iter().map(|x| ClassicGray::to_new_u32(*x)).collect();
 
         for (e, r) in expected.iter().zip(result.iter()) {
             assert_eq!(r, e)
@@ -209,7 +225,7 @@ mod tests {
     #[test]
     fn untouched_intramapping() {
         let input: Vec<u32> = vec![15, 5, 6, 3, 1];
-        let result: Vec<u32> = input.iter().map(|x| Untouched::to_new(*x)).collect();
+        let result: Vec<u32> = input.iter().map(|x| Untouched::to_new_u32(*x)).collect();
 
         for i in 0..input.len() {
             assert_eq!(input[i], result[i])
