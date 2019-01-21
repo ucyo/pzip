@@ -24,6 +24,18 @@ pub enum Predictor {
     LastValue,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum ByteMappingType {
+    Untouched,
+    MonotonicGrayCodes,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum IntramappingType {
+    Untouched,
+    ClassicGrayCodes,
+}
+
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct Config<'a> {
@@ -34,6 +46,8 @@ pub struct Config<'a> {
     pub shape: Shape,
     pub predictor: Predictor,
     pub mapping: MapType,
+    pub bytemapping: ByteMappingType,
+    pub intramapping: IntramappingType,
 }
 
 pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
@@ -47,6 +61,8 @@ pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
     cli.insert("x", 8);
     cli.insert("predictor", 10);
     cli.insert("mapping", 12);
+    cli.insert("bytemapping", 14);
+    cli.insert("intramapping", 16);
 
     let coding = if args[cli["coding"]] == "-c" {
         CodingMode::Encode
@@ -90,6 +106,22 @@ pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
         panic!("Wrong mapping type, {}", args[cli["mapping"]])
     };
 
+    let bytemapping = if args[cli["bytemapping"]] == "mono" {
+        ByteMappingType::MonotonicGrayCodes
+    } else if args[cli["bytemapping"]] == "untouched" {
+        ByteMappingType::Untouched
+    } else {
+        panic!("Wrong bytemapping type {}", args[cli["bytemapping"]])
+    };
+
+    let intramapping = if args[cli["intramapping"]] == "gray" {
+        IntramappingType::ClassicGrayCodes
+    } else if args[cli["intramapping"]] == "untouched" {
+        IntramappingType::Untouched
+    } else {
+        panic!("Wrong intramapping type {}", args[cli["intramapping"]])
+    };
+
     Config {
         input,
         output,
@@ -97,7 +129,9 @@ pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
         filetype,
         shape,
         predictor,
-        mapping
+        mapping,
+        bytemapping,
+        intramapping,
     }
 }
 
@@ -114,7 +148,9 @@ mod tests {
             "outputfile.bin",
             "-s","321","32","12",
             "-p","lv",
-            "-m", "raw"
+            "-m", "raw",
+            "-bm", "mono",
+            "-im", "gray",
         ];
         let mut args: Vec<String> = Vec::new();
         for a in t {
@@ -134,6 +170,8 @@ mod tests {
         assert_eq!(configuration.predictor, Predictor::LastValue);
         assert_eq!(*configuration.input, args[3]);
         assert_eq!(*configuration.output, args[4]);
-        assert_eq!(configuration.mapping, MapType::Raw)
+        assert_eq!(configuration.mapping, MapType::Raw);
+        assert_eq!(configuration.bytemapping, ByteMappingType::MonotonicGrayCodes);
+        assert_eq!(configuration.intramapping, IntramappingType::ClassicGrayCodes);
     }
 }
