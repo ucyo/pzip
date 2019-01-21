@@ -53,22 +53,21 @@ impl Setup<f64> {
             traversal,
             weights: self.weights,
             data: self.source.data,
-        } // fix for f32
+        }
     }
 
     pub fn write<H: mapping::Intermapping, K: mapping::Intramapping>(self, output: &String) -> () {
         let mut p = self.to_predictor();
         let generator_iterator = GeneratorIteratorAdapter(predictions(&mut p));
         let results: Vec<f64> = generator_iterator.collect();
-        let diff: Vec<f64> = results.iter()
+        let diff: Vec<u64> = results.iter()
                                     .map(|a| H::to_u64(*a))
                                     .zip(p.data.iter().map(|a|H::to_u64(*a)))
                                     .map(|(a,b)| K::to_new_u64(a) ^ K::to_new_u64(b))  // TODO eliminate dereferencing
-                                    .map(|x| H::from_u64(K::from_new_u64(x)))
                                     .collect();
         let mut tmp: Vec<u8> = Vec::new();
         for n in diff {
-            let _ = tmp.write_f64::<LittleEndian>(n);
+            let _ = tmp.write_u64::<LittleEndian>(n);
         }
         use byteorder::{LittleEndian, WriteBytesExt};
         use std::fs::File;
@@ -103,15 +102,13 @@ impl Setup<f32> {
         let mut p = self.to_predictor();
         let generator_iterator = GeneratorIteratorAdapter(predictions(&mut p));
         let results: Vec<f32> = generator_iterator.collect();
-        let diff: Vec<f32> = results.iter().map(|a| H::to_u32(*a))
+        let diff: Vec<u32> = results.iter().map(|a| H::to_u32(*a))
                                     .zip(p.data.iter().map(|a| H::to_u32(*a)))
                                     .map(|(a,b)|  K::to_new_u32(a)^K::to_new_u32(b)) // TODO eliminate dereferencing
-                                    .map(|x| H::from_u32(K::to_new_u32(x)))
-                                    .collect(); //TODO the mapping is totally useless. One could write a Vec<u32>
-
+                                    .collect();
         let mut tmp: Vec<u8> = Vec::new();
         for n in diff {
-            let _ = tmp.write_f32::<LittleEndian>(n);
+            let _ = tmp.write_u32::<LittleEndian>(n);
         }
         use byteorder::{LittleEndian, WriteBytesExt};
         use std::fs::File;
