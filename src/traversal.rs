@@ -96,6 +96,16 @@ pub struct Predictor<T> {
     pub data: Vec<T>,
 }
 
+pub mod predictors {
+    use super::{Weight, Position};
+
+    pub fn get_lastvalue() -> Vec<Weight> {
+        vec![Weight{
+            coeff:1, pos: Position{x:1, y:0, z:0}
+        }]
+    }
+}
+
 #[allow(dead_code)]
 pub fn predictions<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
     p: &'a mut Predictor<T>,
