@@ -100,9 +100,21 @@ pub mod predictors {
     use super::{Weight, Position};
 
     pub fn get_lastvalue() -> Vec<Weight> {
-        vec![Weight{
-            coeff:1, pos: Position{x:1, y:0, z:0}
-        }]
+        vec![
+            Weight{coeff:1, pos: Position{x:1, y:0, z:0}},
+        ]
+    }
+
+    pub fn get_lorenz() -> Vec<Weight> {
+        vec![
+            Weight{coeff:1, pos: Position{x:1, y:1, z:1}},
+            Weight{coeff:1, pos: Position{x:0, y:0, z:1}},
+            Weight{coeff:1, pos: Position{x:0, y:1, z:0}},
+            Weight{coeff:1, pos: Position{x:1, y:0, z:0}},
+            Weight{coeff:-1, pos: Position{x:1, y:1, z:0}},
+            Weight{coeff:-1, pos: Position{x:0, y:1, z:1}},
+            Weight{coeff:-1, pos: Position{x:1, y:0, z:1}},
+        ]
     }
 }
 

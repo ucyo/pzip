@@ -22,6 +22,7 @@ pub enum MapType {
 #[derive(Debug, PartialEq)]
 pub enum Predictor {
     LastValue,
+    Lorenz,
 }
 
 #[derive(Debug, PartialEq)]
@@ -94,6 +95,8 @@ pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
 
     let predictor = if args[cli["predictor"]] == "lv" {
         Predictor::LastValue
+    } else if args[cli["predictor"]] == "lorenz" {
+        Predictor::Lorenz
     } else {
         panic!("Wrong predictor, {}", args[cli["predictor"]])
     };
