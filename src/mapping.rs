@@ -231,4 +231,42 @@ mod tests {
             assert_eq!(input[i], result[i])
         }
     }
+
+    #[test]
+    fn test_monotonic_gray_to() {
+        let input = vec![34u8];
+        let output = vec![80_u8];
+
+        for (a,b) in input.iter().zip(output.iter()){
+            assert_eq!(MonotonicGrayBytes::to_u8(*a),*b)
+        }
+    }
+    #[test]
+    fn test_monotonic_gray_from() {
+        let input = vec![34u8];
+        let output = vec![80_u8];
+
+        for (a,b) in input.iter().zip(output.iter()){
+            assert_eq!(MonotonicGrayBytes::from_u8(*b),*a)
+        }
+    }
+    #[test]
+    fn test_monotonic_gray_consistent() {
+        let input = vec![34u8];
+
+        for a in input.iter() {
+            assert_eq!(MonotonicGrayBytes::from_u8(MonotonicGrayBytes::to_u8(*a)), *a)
+        }
+    }
+    #[test]
+    fn test_monotonic_gray_consistent_rev() {
+        let input = vec![34u8];
+
+        for a in input.iter() {
+            assert_eq!(MonotonicGrayBytes::to_u8(MonotonicGrayBytes::from_u8(*a)), *a)
+        }
+    }
+
+
+
 }
