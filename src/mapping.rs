@@ -129,6 +129,15 @@ impl ByteMapping for MonotonicGrayBytes {
     }
 }
 
+impl ByteMapping for Untouched {
+    fn to_u8(num: u8) -> u8 {
+        num
+    }
+    fn from_u8(num: u8) -> u8 {
+        num
+    }
+}
+
 
 mod hardcoded_map {
     use std::collections::HashMap;
