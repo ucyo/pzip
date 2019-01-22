@@ -15,7 +15,7 @@ use position::Position;
 use testing::{FileToBeCompressed, Source};
 use traversal::{predictions, GeneratorIteratorAdapter};
 use traversal::{Predictor, Traversal};
-use mapping::{Intramapping, Intermapping, ByteMapping};
+use mapping::{Intramapping, Intermapping, ByteMapping, CompactTrait};
 
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
@@ -100,7 +100,7 @@ impl Setup<f32> {
         } // fix for f32
     }
 
-    pub fn write<H: Intermapping, K: Intramapping, B: ByteMapping>(self, output: &String) -> () {
+    pub fn write<H: Intermapping, K: Intramapping, B: ByteMapping, C: CompactTrait>(self, output: &String) -> () {
         let mut p = self.to_predictor();
         let generator_iterator = GeneratorIteratorAdapter(predictions(&mut p));
         let results: Vec<f32> = generator_iterator.collect();
@@ -108,6 +108,8 @@ impl Setup<f32> {
                                     .zip(p.data.iter().map(|a| H::to_u32(*a)))
                                     .map(|(a,b)|  K::to_new_u32(a)^K::to_new_u32(b)) // TODO eliminate dereferencing
                                     .collect();
+        let diff = C::compact_u32(diff);
+
         let mut tmp: Vec<u8> = Vec::new();
         for n in diff {
             let _ = tmp.write_u32::<LittleEndian>(n);

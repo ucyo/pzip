@@ -44,7 +44,7 @@ fn compression_using_last_value_all_once_f32_raw() {
     }];
 
     let prediction = Setup::<f32>::new(&input, shape, weights);
-    prediction.write::<Raw, Untouched, Untouched>(&output);
+    prediction.write::<Raw, Untouched, Untouched, Untouched>(&output);
 
     let origin = pzip::testing::read_first_k_f32(&input, 760);
     let outcome = pzip::testing::read_first_k_f32(&output, 760);

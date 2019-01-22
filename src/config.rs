@@ -37,6 +37,12 @@ pub enum IntramappingType {
     ClassicGrayCodes,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum CompactType {
+    Untouched,
+    NoLZC,
+}
+
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct Config<'a> {
@@ -49,6 +55,7 @@ pub struct Config<'a> {
     pub mapping: MapType,
     pub bytemapping: ByteMappingType,
     pub intramapping: IntramappingType,
+    pub compact: CompactType,
 }
 
 pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
@@ -64,6 +71,7 @@ pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
     cli.insert("mapping", 12);
     cli.insert("bytemapping", 14);
     cli.insert("intramapping", 16);
+    cli.insert("compact", 17);
 
     let coding = if args[cli["coding"]] == "-c" {
         CodingMode::Encode
@@ -125,6 +133,14 @@ pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
         panic!("Wrong intramapping type {}", args[cli["intramapping"]])
     };
 
+    let compact = if args[cli["compact"]] == "-c" {
+        CompactType::NoLZC
+    } else if args[cli["compact"]] == "-u" {
+        CompactType::NoLZC
+    } else {
+        panic!("Wrong coding mode")
+    };
+
     Config {
         input,
         output,
@@ -135,6 +151,7 @@ pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
         mapping,
         bytemapping,
         intramapping,
+        compact
     }
 }
 
@@ -154,6 +171,7 @@ mod tests {
             "-m", "raw",
             "-bm", "mono",
             "-im", "gray",
+            "-c",
         ];
         let mut args: Vec<String> = Vec::new();
         for a in t {
@@ -176,5 +194,6 @@ mod tests {
         assert_eq!(configuration.mapping, MapType::Raw);
         assert_eq!(configuration.bytemapping, ByteMappingType::MonotonicGrayCodes);
         assert_eq!(configuration.intramapping, IntramappingType::ClassicGrayCodes);
+        assert_eq!(configuration.compact, CompactType::NoLZC);
     }
 }

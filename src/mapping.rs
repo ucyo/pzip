@@ -138,6 +138,65 @@ impl ByteMapping for Untouched {
     }
 }
 
+pub trait CompactTrait {
+    fn compact_u32(data: Vec<u32>) -> Vec<u32>;
+}
+
+pub struct NoLZCCompact {}
+impl CompactTrait for NoLZCCompact {
+
+    fn compact_u32(data: Vec<u32>) -> Vec<u32> {
+        let bits = 32;
+        let mut result: Vec<u32> = Vec::new();
+
+        let mut remaining = bits;
+        let mut tmp = 0u32;
+        for val in data {
+            let size = bits - val.leading_zeros();
+            if size <= remaining {
+                tmp = add(val, &remaining, &tmp);
+                remaining -= size;
+            } else {
+                let (a,b,zeros) = split(val, &remaining);
+
+                tmp = add(a, &remaining, &tmp);
+                result.push(tmp);
+                // println!("   pushed: {:032b}", tmp);
+                tmp = if b!= 0 {b << b.leading_zeros() - zeros} else {0u32};
+                remaining = bits - (bits - b.leading_zeros()) - zeros;
+            }
+        }
+        result.push(tmp);
+        // println!("last push: {:032b}",tmp);
+        result
+    }
+}
+
+impl CompactTrait for Untouched {
+    fn compact_u32(data: Vec<u32>) -> Vec<u32> {
+        data
+    }
+}
+
+fn add(value: u32, remaining: &u32, into: &u32) -> u32 {
+        let shift = remaining - (32 - value.leading_zeros());
+        let tmp = value << shift;
+        into + tmp
+    }
+
+fn split(val: u32, pos: &u32) -> (u32,u32,u32) {
+    let valuelength = 32 - val.leading_zeros();
+    let a = val >> (valuelength - pos);
+    let b = val &  2u32.pow(32-val.leading_zeros()-pos)-1;
+    let zeros = if b != 0 {
+        32 - val.leading_zeros() - pos - (32 - b.leading_zeros())
+    } else {
+        32 - val.leading_zeros() - pos - (32 - b.leading_zeros())
+    };
+
+    (a,b,zeros)
+}
+
 
 mod hardcoded_map {
     use std::collections::HashMap;
