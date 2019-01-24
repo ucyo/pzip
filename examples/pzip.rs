@@ -2,14 +2,14 @@
 extern crate pzip;
 
 use pzip::config::FileType;
+use pzip::config::{ByteMappingType, CompactType, IntramappingType, MapType, Predictor};
 use pzip::Setup;
 use std::env;
-use pzip::config::{MapType, Predictor, ByteMappingType, IntramappingType, CompactType};
 
-use pzip::mapping::{Raw, Ordered};
-use pzip::mapping::{Untouched, ClassicGray};
 use pzip::mapping::MonotonicGrayBytes;
 use pzip::mapping::NoLZCCompact;
+use pzip::mapping::{ClassicGray, Untouched};
+use pzip::mapping::{Ordered, Raw};
 
 use pzip::traversal::predictors;
 
@@ -21,10 +21,10 @@ fn main() {
     let predictor = predictors::get_lorenz();
 
     if configuration.filetype == FileType::F64 {
-            let setup = Setup::<f64>::new(configuration.input, configuration.shape, predictor);
+        let setup = Setup::<f64>::new(configuration.input, configuration.shape, predictor);
 
-            // TODO: Test bitpacking for u64
-            setup.write::<
+        // TODO: Test bitpacking for u64
+        setup.write::<
 
                 // Raw,          // intermapping from       f32 to u32
                 Ordered,         // intermapping from       f32 to u32
@@ -37,8 +37,8 @@ fn main() {
 
             >(configuration.output)
     } else if configuration.filetype == FileType::F32 {
-            let setup = Setup::<f32>::new(configuration.input, configuration.shape, predictor);
-            setup.write::<
+        let setup = Setup::<f32>::new(configuration.input, configuration.shape, predictor);
+        setup.write::<
 
                 // Raw,          // intermapping from       f32 to u32
                 Ordered,         // intermapping from       f32 to u32
@@ -53,9 +53,9 @@ fn main() {
                 // NoLZCCompact,     //   bitpacking from  Vec<u32> to Vec<u32>
 
             >(configuration.output)
-    } else { panic!("Error!!") }
-
-
+    } else {
+        panic!("Error!!")
+    }
 
     // // check for predictor
     // if configuration.predictor == Predictor::LastValue {

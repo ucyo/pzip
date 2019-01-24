@@ -1,6 +1,6 @@
+use pzip::mapping::{Intermapping, Raw, Untouched};
 use pzip::position::Position;
 use pzip::{Setup, Weight};
-use pzip::mapping::{Raw, Intermapping, Untouched};
 
 #[test]
 fn compression_using_last_value_all_once_f64_raw() {
@@ -24,7 +24,10 @@ fn compression_using_last_value_all_once_f64_raw() {
 
     for i in 362..623 {
         println!("{} {} {}", i, origin[i - 1], outcome[i]);
-        assert_eq!(Raw::from_u64(Raw::to_u64(origin[i - 1]) ^ Raw::to_u64(origin[i])), outcome[i]);
+        assert_eq!(
+            Raw::from_u64(Raw::to_u64(origin[i - 1]) ^ Raw::to_u64(origin[i])),
+            outcome[i]
+        );
     }
     std::fs::remove_file(&output).expect("Error");
 }
@@ -51,7 +54,10 @@ fn compression_using_last_value_all_once_f32_raw() {
 
     for i in 362..623 {
         println!("{} {} {}", i, origin[i - 1], outcome[i]);
-        assert_eq!(Raw::from_u32(Raw::to_u32(origin[i - 1]) ^ Raw::to_u32(origin[i])), outcome[i]);
+        assert_eq!(
+            Raw::from_u32(Raw::to_u32(origin[i - 1]) ^ Raw::to_u32(origin[i])),
+            outcome[i]
+        );
     }
     std::fs::remove_file(&output).expect("Error");
 }

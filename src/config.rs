@@ -151,7 +151,7 @@ pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
         mapping,
         bytemapping,
         intramapping,
-        compact
+        compact,
     }
 }
 
@@ -163,14 +163,22 @@ mod tests {
     fn test_parsing_to_config() {
         let t = vec![
             "pzip",
-            "-c","-f32",
+            "-c",
+            "-f32",
             "inputfile.bin",
             "outputfile.bin",
-            "-s","321","32","12",
-            "-p","lv",
-            "-m", "raw",
-            "-bm", "mono",
-            "-im", "gray",
+            "-s",
+            "321",
+            "32",
+            "12",
+            "-p",
+            "lv",
+            "-m",
+            "raw",
+            "-bm",
+            "mono",
+            "-im",
+            "gray",
             "-c",
         ];
         let mut args: Vec<String> = Vec::new();
@@ -192,8 +200,14 @@ mod tests {
         assert_eq!(*configuration.input, args[3]);
         assert_eq!(*configuration.output, args[4]);
         assert_eq!(configuration.mapping, MapType::Raw);
-        assert_eq!(configuration.bytemapping, ByteMappingType::MonotonicGrayCodes);
-        assert_eq!(configuration.intramapping, IntramappingType::ClassicGrayCodes);
+        assert_eq!(
+            configuration.bytemapping,
+            ByteMappingType::MonotonicGrayCodes
+        );
+        assert_eq!(
+            configuration.intramapping,
+            IntramappingType::ClassicGrayCodes
+        );
         assert_eq!(configuration.compact, CompactType::NoLZC);
     }
 }
