@@ -8,10 +8,3 @@ edition = "2018"
 byteorder = "1.2.7"
 lazy_static = "1.2.0"
 hashbrown = "0.1.8"
-
-[dev-dependencies]
-criterion = "0.2"
-
-[[bench]]
-name = "pzip_benchmark"
-harness = false
