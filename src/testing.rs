@@ -73,7 +73,7 @@ impl FileToBeCompressed<f32> for Source<f32> {
             panic!("Can not be read into f32");
         }
         let mut data = vec![0_f32; size / 4];
-        LittleEndian::read_f32_into_unchecked(&bytes, &mut data);
+        LittleEndian::read_f32_into(&bytes, &mut data);
         self.data = data;
         Ok(self.data.len())
     }
@@ -102,7 +102,7 @@ impl FileToBeCompressed<f64> for Source<f64> {
             panic!("Can not be read into f64");
         }
         let mut data = vec![0_f64; size / 8];
-        LittleEndian::read_f64_into_unchecked(&bytes, &mut data);
+        LittleEndian::read_f64_into(&bytes, &mut data);
         self.data = data;
         Ok(self.data.len())
     }
