@@ -140,7 +140,6 @@ pub mod predictors {
     }
 }
 
-#[allow(dead_code)]
 pub fn predictions<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
     p: &'a mut Predictor<T>,
 ) -> impl Generator<Yield = T, Return = ()> + 'a {
@@ -171,7 +170,6 @@ pub fn predictions<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul +
     }
 }
 
-#[allow(dead_code)]
 pub struct GeneratorIteratorAdapter<G>(pub G);
 
 impl<G> Iterator for GeneratorIteratorAdapter<G>

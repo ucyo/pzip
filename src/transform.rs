@@ -5,7 +5,6 @@
 /// - Gray (Intra)
 /// - MonoGray (Byte)
 
-
 pub trait InterMapping {
     fn to_u32(&self, from: f32) -> u32;
     fn from_u32(&self, from: u32) -> f32;
@@ -29,13 +28,9 @@ pub trait ByteMapping {
     fn from_u8(&self, num: u8) -> u8;
 }
 
-
-
-
-
 pub enum Inter {
     Untouched,
-    Ordered
+    Ordered,
 }
 
 pub enum Intra {
@@ -45,19 +40,19 @@ pub enum Intra {
 
 pub enum Byte {
     Untouched,
-    MonoGray
+    MonoGray,
 }
 
 pub enum Compact {
     Untouched,
-    NoLZC
+    NoLZC,
 }
 
 impl IntraMapping for Intra {
     fn to_new_u32(&self, num: u32) -> u32 {
         match self {
             Intra::Untouched => num,
-            Intra::Gray => num ^ (num >> 1)
+            Intra::Gray => num ^ (num >> 1),
         }
     }
     fn from_new_u32(&self, num: u32) -> u32 {
@@ -77,9 +72,7 @@ impl IntraMapping for Intra {
     fn to_new_u64(&self, num: u64) -> u64 {
         match self {
             Intra::Untouched => num,
-            Intra::Gray =>{
-                num ^ (num >> 1)
-            }
+            Intra::Gray => num ^ (num >> 1),
         }
     }
     fn from_new_u64(&self, num: u64) -> u64 {
@@ -148,20 +141,20 @@ impl InterMapping for Inter {
                 if result > 0x7FC0_0000_0000_0000 && from.is_nan() {
                     return !result;
                 }
-                return result
+                return result;
             }
         }
     }
     fn from_u64(&self, from: u64) -> f64 {
         match self {
             Inter::Untouched => unsafe { std::mem::transmute::<u64, f64>(from) },
-            Inter::Ordered =>{
-        if from < (1 << 63) {
-            return unsafe { std::mem::transmute::<u64, f64>(!from) };
-        } else {
-            return unsafe { std::mem::transmute::<u64, f64>(from - (1 << 63)) };
-        }
-    }
+            Inter::Ordered => {
+                if from < (1 << 63) {
+                    return unsafe { std::mem::transmute::<u64, f64>(!from) };
+                } else {
+                    return unsafe { std::mem::transmute::<u64, f64>(from - (1 << 63)) };
+                }
+            }
         }
     }
 }
@@ -170,13 +163,13 @@ impl ByteMapping for Byte {
     fn to_u8(&self, num: u8) -> u8 {
         match self {
             Byte::Untouched => num,
-            Byte::MonoGray => hardcoded_map::MAP[&num]
+            Byte::MonoGray => hardcoded_map::MAP[&num],
         }
     }
     fn from_u8(&self, num: u8) -> u8 {
         match self {
             Byte::Untouched => num,
-            Byte::MonoGray => hardcoded_map::REVMAP[&num]
+            Byte::MonoGray => hardcoded_map::REVMAP[&num],
         }
     }
 }
@@ -236,8 +229,8 @@ fn split(val: u32, pos: &u32) -> (u32, u32, u32) {
 }
 
 mod hardcoded_map {
-    use lazy_static::lazy_static;
     use hashbrown::HashMap;
+    use lazy_static::lazy_static;
 
     lazy_static! {
         pub static ref MAP: HashMap<u8, u8> = {
@@ -398,8 +391,6 @@ mod hardcoded_map {
 
 }
 
-
-
 #[allow(unused_imports)]
 mod tests {
     use super::*;
@@ -429,7 +420,9 @@ mod tests {
         ];
         for val in tests {
             if val.is_nan() {
-                assert!(Inter::Untouched.from_u32(Inter::Untouched.to_u32(val)).is_nan());
+                assert!(Inter::Untouched
+                    .from_u32(Inter::Untouched.to_u32(val))
+                    .is_nan());
                 assert!(Inter::Ordered.from_u32(Inter::Ordered.to_u32(val)).is_nan());
                 continue;
             }
@@ -451,7 +444,9 @@ mod tests {
         ];
         for val in tests {
             if val.is_nan() {
-                assert!(Inter::Untouched.from_u64(Inter::Untouched.to_u64(val)).is_nan());
+                assert!(Inter::Untouched
+                    .from_u64(Inter::Untouched.to_u64(val))
+                    .is_nan());
                 assert!(Inter::Ordered.from_u64(Inter::Ordered.to_u64(val)).is_nan());
                 continue;
             }
@@ -511,7 +506,10 @@ mod tests {
     #[test]
     fn untouched_intramapping() {
         let input: Vec<u32> = vec![15, 5, 6, 3, 1];
-        let result: Vec<u32> = input.iter().map(|x| Intra::Untouched.to_new_u32(*x)).collect();
+        let result: Vec<u32> = input
+            .iter()
+            .map(|x| Intra::Untouched.to_new_u32(*x))
+            .collect();
 
         for i in 0..input.len() {
             assert_eq!(input[i], result[i])
@@ -541,10 +539,7 @@ mod tests {
         let input = vec![34u8];
 
         for a in input.iter() {
-            assert_eq!(
-                Byte::MonoGray.from_u8(Byte::MonoGray.to_u8(*a)),
-                *a
-            )
+            assert_eq!(Byte::MonoGray.from_u8(Byte::MonoGray.to_u8(*a)), *a)
         }
     }
     #[test]
@@ -552,10 +547,7 @@ mod tests {
         let input = vec![34u8];
 
         for a in input.iter() {
-            assert_eq!(
-                Byte::MonoGray.to_u8(Byte::MonoGray.from_u8(*a)),
-                *a
-            )
+            assert_eq!(Byte::MonoGray.to_u8(Byte::MonoGray.from_u8(*a)), *a)
         }
     }
 

@@ -9,17 +9,16 @@ pub mod config;
 // pub mod mapping;
 pub mod position;
 pub mod testing;
-pub mod traversal;
 pub mod transform;
+pub mod traversal;
 
-use transform::{Inter, Intra, Byte, Compact};
-use transform::{InterMapping, IntraMapping, ByteMapping, CompactMapping};
 use position::Position;
 use testing::{FileToBeCompressed, Source};
+use transform::{Byte, Compact, Inter, Intra};
+use transform::{ByteMapping, CompactMapping, InterMapping, IntraMapping};
 use traversal::{predictions, GeneratorIteratorAdapter};
 use traversal::{Predictor, Traversal};
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub struct Shape {
     pub x: usize,
@@ -32,7 +31,6 @@ pub struct Weight {
     pub pos: Position,
 }
 
-#[allow(dead_code)]
 pub struct Setup<T> {
     source: testing::Source<T>,
     shape: Shape,

@@ -43,7 +43,6 @@ pub enum CompactType {
     NoLZC,
 }
 
-#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Config<'a> {
     pub input: &'a String,
