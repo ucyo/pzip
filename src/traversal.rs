@@ -140,6 +140,7 @@ pub mod predictors {
     }
 }
 
+#[deprecated(since="0.1.0", note="use 'neighbours' instead")]
 pub fn predictions<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
     p: &'a mut Predictor<T>,
 ) -> impl Generator<Yield = T, Return = ()> + 'a {
@@ -162,6 +163,33 @@ pub fn predictions<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul +
                         }
                         yield result;
                         p.traversal.push(a, 1);
+                        data_ix += 1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub fn neighbours<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
+    mut traversal: Traversal<T>, data: &'a Vec<T>, neighbours: &'a Vec<Position>
+) -> impl Generator<Yield = Vec<T>, Return = ()> + 'a {
+    move || {
+        let mut data_ix = 0usize;
+        while data_ix < data.len() {
+            traversal.advance(1, 0, 0);
+            for _ in 0..traversal.nz {
+                traversal.advance(0, 1, 0);
+                for _ in 0..traversal.ny {
+                    traversal.advance(0, 0, 1);
+                    for _ in 0..traversal.nx {
+                        let a = &data[data_ix];
+                        let mut result : Vec<T> = Vec::new();
+                        for p in neighbours.iter() {
+                            result.push(*traversal.fetch(p.z, p.y, p.x));
+                        }
+                        yield result;
+                        traversal.push(a, 1);
                         data_ix += 1;
                     }
                 }
