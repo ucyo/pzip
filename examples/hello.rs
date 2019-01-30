@@ -20,7 +20,7 @@ fn main() {
 
     let mut source: Source<f32> = Source::new(&input);
     let traversal = Traversal::new(shape.z, shape.y, shape.x);
-    let nbytes = source.load().unwrap();
+    let _nbytes = source.load().unwrap();
 
     let values = GeneratorIteratorAdapter(neighbours(traversal, &source.data, &information));
     for environ in values {
