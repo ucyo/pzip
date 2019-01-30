@@ -19,13 +19,17 @@ pub struct Traversal<T> {
     zero: T,
 }
 
+/// Traversal of the data.
+///
+/// # Note
+/// The maximum traversal is limited by 6 steps (in either dimension).
 impl<T: Default + Copy> Traversal<T> {
     pub fn new(nz: usize, ny: usize, nx: usize) -> Self {
         let dx = 1;
         let dy = nx + 1;
         let dz = dy * (ny + 1);
 
-        let sum = dz + dy + dx - 1;
+        let sum = nx * ny * 6 * 6;  // limit for furthest possible neighbour is set to 6
         let m = sum.next_power_of_two() - 1;
         let a = vec![Default::default(); m + 1];
         let ix = 0;
@@ -61,6 +65,7 @@ impl<T: Default + Copy> Traversal<T> {
     }
 }
 
+#[deprecated(since="0.1.0", note="Use 'neighbours' instead")]
 pub fn predict<T: Copy + AddAssign<<T as Mul>::Output> + Default + From<i32> + Mul>(
     data: &Vec<T>,
     at: usize,
@@ -68,11 +73,12 @@ pub fn predict<T: Copy + AddAssign<<T as Mul>::Output> + Default + From<i32> + M
     weights: &Vec<(i32, Position)>,
 ) -> T {
     let mut data_ix = 0usize;
-    traversal.advance(1, 0, 0);
+    let maximas = predict_maximas(&weights);
+    traversal.advance(maximas.z, 0, 0);
     'outer: for _ in 0..traversal.nz {
-        traversal.advance(0, 1, 0);
+        traversal.advance(0, maximas.y, 0);
         for _ in 0..traversal.ny {
-            traversal.advance(0, 0, 1);
+            traversal.advance(0, 0, maximas.x);
             for _ in 0..traversal.nx {
                 let a = &data[data_ix];
                 if data_ix == at {
@@ -88,6 +94,29 @@ pub fn predict<T: Copy + AddAssign<<T as Mul>::Output> + Default + From<i32> + M
         result += T::from(*w) * *traversal.fetch(p.z, p.y, p.x);
     }
     result
+}
+
+#[deprecated(since="0.1.0", note="Use 'furthest_neighbour_per_dimension' instead")]
+fn predict_maximas(values: &Vec<(i32, Position)>) -> Position {
+    let max_x = values.iter().map(|(_, x)| x.x).max();
+    let max_y = values.iter().map(|(_, x)| x.y).max();
+    let max_z = values.iter().map(|(_, x)| x.z).max();
+
+
+    let x = match max_x {
+        Some(i) => {if i!=0 { i} else { 1}}
+        _ => 1
+    };
+    let y = match max_y {
+        Some(i) => {if i!=0 { i} else { 1}}
+        _ => 1
+    };
+    let z = match max_z {
+        Some(i) => {if i!=0 { i} else { 1}}
+        _ => 1
+    };
+
+    Position {x,y,z}
 }
 
 pub struct Predictor<T> {
@@ -171,17 +200,43 @@ pub fn predictions<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul +
     }
 }
 
+/// Searches for the furthest neighbout in each dimension.
+/// This method is important for the number of 0s added in the advance
+/// function of the traversal.
+fn furthest_neighbour_per_dimension(values: &Vec<Position>) -> Position {
+    let max_x = values.iter().map(|x| x.x).max();
+    let max_y = values.iter().map(|x| x.y).max();
+    let max_z = values.iter().map(|x| x.z).max();
+
+
+    let x = match max_x {
+        Some(i) => {if i!=0 { i} else { 1}}
+        _ => 1
+    };
+    let y = match max_y {
+        Some(i) => {if i!=0 { i} else { 1}}
+        _ => 1
+    };
+    let z = match max_z {
+        Some(i) => {if i!=0 { i} else { 1}}
+        _ => 1
+    };
+
+    Position {x,y,z}
+}
+
 pub fn neighbours<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
     mut traversal: Traversal<T>, data: &'a Vec<T>, neighbours: &'a Vec<Position>
 ) -> impl Generator<Yield = Vec<T>, Return = ()> + 'a {
     move || {
         let mut data_ix = 0usize;
+        let max = furthest_neighbour_per_dimension(&neighbours);
         while data_ix < data.len() {
-            traversal.advance(1, 0, 0);
+            traversal.advance(max.z, 0, 0);
             for _ in 0..traversal.nz {
-                traversal.advance(0, 1, 0);
+                traversal.advance(0, max.y, 0);
                 for _ in 0..traversal.ny {
-                    traversal.advance(0, 0, 1);
+                    traversal.advance(0, 0, max.x);
                     for _ in 0..traversal.nx {
                         let a = &data[data_ix];
                         let mut result : Vec<T> = Vec::new();
