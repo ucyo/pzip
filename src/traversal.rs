@@ -267,4 +267,78 @@ mod tests {
             println!("{}: {}", i, c);
         }
     }
+
+    #[test]
+    fn extended_fetch_test_for_traversal() {
+        let data = vec![
+            0.0, 1.0, 2.0,
+            3.0, 4.0, 5.0,
+            6.0, 7.0, 8.0,
+
+            9.0, 10.0, 11.0,
+            12.0, 13.0, 14.0,
+            15.0, 16.0, 17.0,
+
+            18.0, 19.0, 20.0,
+            21.0, 22.0, 23.0,
+            24.0, 25.0, 26.0,
+        ];
+
+        {
+            let mut tr = Traversal::new(3, 3, 3);
+            let mut weights: Vec<(i32, Position)> = Vec::new();
+            weights.push((1, Position { x: 1, y: 0, z: 2 }));
+
+            assert_eq!(predict(&data, 2, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 20, &mut tr, &weights), 1f64);
+            assert_eq!(predict(&data, 17, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 26, &mut tr, &weights), 7f64);
+            assert_eq!(predict(&data, 18, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 9, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 13, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 5, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 19, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 11, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 10, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 9, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 1, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 22, &mut tr, &weights), 3f64);
+        }
+
+        {   let mut tr = Traversal::new(3, 3, 3);
+            let mut weights: Vec<(i32, Position)> = Vec::new();
+            weights.push((1, Position { x: 1, y: 2, z: 0 }));
+
+
+            assert_eq!(predict(&data, 19, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 20, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 17, &mut tr, &weights), 10f64);
+            assert_eq!(predict(&data, 26, &mut tr, &weights), 19f64);
+            assert_eq!(predict(&data, 18, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 9, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 13, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 5, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 25, &mut tr, &weights), 18f64);
+            assert_eq!(predict(&data, 18, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 16, &mut tr, &weights), 9f64);
+        }
+
+        {   let mut tr = Traversal::new(3, 3, 3);
+            let mut weights: Vec<(i32, Position)> = Vec::new();
+            weights.push((1, Position { x: 3, y: 3, z: 0 }));
+
+
+            assert_eq!(predict(&data, 19, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 20, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 17, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 26, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 18, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 9, &mut tr, &weights),  0f64);
+            assert_eq!(predict(&data, 13, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 5, &mut tr, &weights),  0f64);
+            assert_eq!(predict(&data, 25, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 18, &mut tr, &weights), 0f64);
+            assert_eq!(predict(&data, 16, &mut tr, &weights), 0f64);
+        }
+    }
 }
