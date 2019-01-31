@@ -48,20 +48,20 @@ impl<T: Default + Copy> Traversal<T> {
             zero,
         }
     }
-    pub fn advance(&mut self, z: usize, y: usize, x: usize) {
-        let n = self.dz * z + self.dy * y + self.dx * x;
+    pub fn advance(&mut self, z: i32, y: i32, x: i32) {
+        let n = self.dz as i32 * z + self.dy as i32 * y + self.dx as i32 * x;
         self.push(&Default::default(), n);
     }
-    pub fn push(&mut self, val: &T, mut n: usize) {
+    pub fn push(&mut self, val: &T, mut n: i32) {
         while n > 0 {
             self.a[self.ix & self.m] = *val;
             self.ix += 1;
             n -= 1;
         }
     }
-    pub fn fetch(&self, z: usize, y: usize, x: usize) -> &T {
-        let pos = self.ix - (self.dz * z + self.dy * y + self.dx * x);
-        &self.a[pos & self.m]
+    pub fn fetch(&self, z: i32, y: i32, x: i32) -> &T {
+        let pos = self.ix as i32 - (self.dz as i32 * z + self.dy as i32 * y + self.dx as i32 * x);
+        &self.a[(pos & self.m as i32) as usize]
     }
 }
 
