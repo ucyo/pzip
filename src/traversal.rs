@@ -29,7 +29,7 @@ impl<T: Default + Copy> Traversal<T> {
         let dy = nx + 1;
         let dz = dy * (ny + 1);
 
-        let sum = nx * ny * 6 * 6;  // limit for furthest possible neighbour is set to 6
+        let sum = nx * ny * 6 * 6; // limit for furthest possible neighbour is set to 6
         let m = sum.next_power_of_two() - 1;
         let a = vec![Default::default(); m + 1];
         let ix = 0;
@@ -65,7 +65,7 @@ impl<T: Default + Copy> Traversal<T> {
     }
 }
 
-#[deprecated(since="0.1.0", note="Use 'neighbours' instead")]
+#[deprecated(since = "0.1.0", note = "Use 'neighbours' instead")]
 pub fn predict<T: Copy + AddAssign<<T as Mul>::Output> + Default + From<i32> + Mul>(
     data: &Vec<T>,
     at: usize,
@@ -96,27 +96,47 @@ pub fn predict<T: Copy + AddAssign<<T as Mul>::Output> + Default + From<i32> + M
     result
 }
 
-#[deprecated(since="0.1.0", note="Use 'furthest_neighbour_per_dimension' instead")]
+#[deprecated(
+    since = "0.1.0",
+    note = "Use 'furthest_neighbour_per_dimension' instead"
+)]
 fn predict_maximas(values: &Vec<(i32, Position)>) -> Position {
     let max_x = values.iter().map(|(_, x)| x.x).max();
     let max_y = values.iter().map(|(_, x)| x.y).max();
     let max_z = values.iter().map(|(_, x)| x.z).max();
 
-
     let x = match max_x {
-        Some(i) => {if i!=0 { i} else { 1}}
-        _ => 1
+        Some(i) => {
+            if i != 0 {
+                i
+            } else {
+                1
+            }
+        }
+        _ => 1,
     };
     let y = match max_y {
-        Some(i) => {if i!=0 { i} else { 1}}
-        _ => 1
+        Some(i) => {
+            if i != 0 {
+                i
+            } else {
+                1
+            }
+        }
+        _ => 1,
     };
     let z = match max_z {
-        Some(i) => {if i!=0 { i} else { 1}}
-        _ => 1
+        Some(i) => {
+            if i != 0 {
+                i
+            } else {
+                1
+            }
+        }
+        _ => 1,
     };
 
-    Position {x,y,z}
+    Position { x, y, z }
 }
 
 pub struct Predictor<T> {
@@ -169,7 +189,7 @@ pub mod predictors {
     }
 }
 
-#[deprecated(since="0.1.0", note="use 'neighbours' instead")]
+#[deprecated(since = "0.1.0", note = "use 'neighbours' instead")]
 pub fn predictions<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
     p: &'a mut Predictor<T>,
 ) -> impl Generator<Yield = T, Return = ()> + 'a {
@@ -208,25 +228,44 @@ fn furthest_neighbour_per_dimension(values: &Vec<Position>) -> Position {
     let max_y = values.iter().map(|x| x.y).max();
     let max_z = values.iter().map(|x| x.z).max();
 
-
     let x = match max_x {
-        Some(i) => {if i!=0 { i} else { 1}}
-        _ => 1
+        Some(i) => {
+            if i != 0 {
+                i
+            } else {
+                1
+            }
+        }
+        _ => 1,
     };
     let y = match max_y {
-        Some(i) => {if i!=0 { i} else { 1}}
-        _ => 1
+        Some(i) => {
+            if i != 0 {
+                i
+            } else {
+                1
+            }
+        }
+        _ => 1,
     };
     let z = match max_z {
-        Some(i) => {if i!=0 { i} else { 1}}
-        _ => 1
+        Some(i) => {
+            if i != 0 {
+                i
+            } else {
+                1
+            }
+        }
+        _ => 1,
     };
 
-    Position {x,y,z}
+    Position { x, y, z }
 }
 
 pub fn neighbours<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
-    mut traversal: Traversal<T>, data: &'a Vec<T>, neighbours: &'a Vec<Position>
+    mut traversal: Traversal<T>,
+    data: &'a Vec<T>,
+    neighbours: &'a Vec<Position>,
 ) -> impl Generator<Yield = Vec<T>, Return = ()> + 'a {
     move || {
         let mut data_ix = 0usize;
@@ -239,7 +278,7 @@ pub fn neighbours<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + 
                     traversal.advance(0, 0, max.x);
                     for _ in 0..traversal.nx {
                         let a = &data[data_ix];
-                        let mut result : Vec<T> = Vec::new();
+                        let mut result: Vec<T> = Vec::new();
                         for p in neighbours.iter() {
                             result.push(*traversal.fetch(p.z, p.y, p.x));
                         }
@@ -360,10 +399,10 @@ mod tests {
             assert_eq!(predict(&data, 22, &mut tr, &weights), 3f64);
         }
 
-        {   let mut tr = Traversal::new(3, 3, 3);
+        {
+            let mut tr = Traversal::new(3, 3, 3);
             let mut weights: Vec<(i32, Position)> = Vec::new();
             weights.push((1, Position { x: 1, y: 2, z: 0 }));
-
 
             assert_eq!(predict(&data, 19, &mut tr, &weights), 0f64);
             assert_eq!(predict(&data, 20, &mut tr, &weights), 0f64);
@@ -378,22 +417,35 @@ mod tests {
             assert_eq!(predict(&data, 16, &mut tr, &weights), 9f64);
         }
 
-        {   let mut tr = Traversal::new(3, 3, 3);
+        {
+            let mut tr = Traversal::new(3, 3, 3);
             let mut weights: Vec<(i32, Position)> = Vec::new();
             weights.push((1, Position { x: 3, y: 3, z: 0 }));
-
 
             assert_eq!(predict(&data, 19, &mut tr, &weights), 0f64);
             assert_eq!(predict(&data, 20, &mut tr, &weights), 0f64);
             assert_eq!(predict(&data, 17, &mut tr, &weights), 0f64);
             assert_eq!(predict(&data, 26, &mut tr, &weights), 0f64);
             assert_eq!(predict(&data, 18, &mut tr, &weights), 0f64);
-            assert_eq!(predict(&data, 9, &mut tr, &weights),  0f64);
+            assert_eq!(predict(&data, 9, &mut tr, &weights), 0f64);
             assert_eq!(predict(&data, 13, &mut tr, &weights), 0f64);
-            assert_eq!(predict(&data, 5, &mut tr, &weights),  0f64);
+            assert_eq!(predict(&data, 5, &mut tr, &weights), 0f64);
             assert_eq!(predict(&data, 25, &mut tr, &weights), 0f64);
             assert_eq!(predict(&data, 18, &mut tr, &weights), 0f64);
             assert_eq!(predict(&data, 16, &mut tr, &weights), 0f64);
+        }
+
+        {
+            let mut tr = Traversal::new(3, 3, 3);
+            let mut weights: Vec<(i32, Position)> = Vec::new();
+            weights.push((1, Position { x: 2, y: 1, z: 1 }));
+
+            let result = predict(&data, 26, &mut tr, &weights);
+            {
+                let look = &tr.a[..];
+                let x = 3;
+            }
+            assert_eq!(result, 12f64);
         }
     }
 }

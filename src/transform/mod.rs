@@ -4,7 +4,6 @@
 /// - Ordered (Inter)
 /// - Gray (Intra)
 /// - MonoGray (Byte)
-
 pub mod arrays;
 
 pub trait InterMapping {
