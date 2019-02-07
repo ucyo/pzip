@@ -177,6 +177,20 @@ pub fn single_neighbours_grouped_no_ring<'a, T: AddAssign<<T as Mul>::Output> + 
     }
 }
 
+pub fn single_neighbours_grouped_with_ring<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul>(
+    shape: &'a Coordinate, pos: &'a Vec<Coordinate>, data: &'a Vec<T>) -> impl Generator<Yield = Vec<T>, Return = ()> + 'a {
+    move || {
+        let results: Vec<Vec<T>> = pos.iter().map(|p| GeneratorIteratorAdapter(single_neighbours_with_ring(shape, p, data)).collect()).collect();
+        for i in 0..data.len(){
+            let mut r = Vec::new();
+            for k in 0..results.len() {
+                r.push(results[k][i])
+            }
+            yield r;
+        }
+    }
+}
+
 pub fn single_neighbours_with_ring<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul>(
     shape: &'a Coordinate, pos: &'a Coordinate, data: &'a Vec<T>) -> impl Generator<Yield = T, Return = ()> + 'a {
     move || {
