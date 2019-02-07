@@ -2,24 +2,21 @@
 use pzip::position::Position;
 use pzip::transform::InterMapping;
 use pzip::transform::{Byte, Compact, Inter, Intra};
-use pzip::{Setup, Weight};
+use pzip::{Setup};
 
 #[test]
 #[ignore]
 fn compression_using_last_value_all_once_f64_raw() {
-    let input = String::from("/home/ucyo/rust/pzip/data/pres.1-90-181-361.f64.bin");
-    let output = String::from("/home/ucyo/rust/pzip/data/lastvalue.all.f64.pred");
+    let input = String::from("/home/ucyo/rust/pzip/data/icon.ml.qv.f64.little.4x90x351x901_0.raw");
+    let output = String::from("/tmp/testing64.pzip");
     let shape = pzip::Shape {
         z: 90,
-        y: 181,
-        x: 361,
+        y: 351,
+        x: 901,
     };
-    let weights = vec![Weight {
-        coeff: 1,
-        pos: Position { z: 0, y: 0, x: 1 },
-    }];
+    let weights = vec![Position { z: 0, y: 0, x: 1 }];
 
-    let prediction = Setup::<f64>::new(&input, shape, weights);
+    let mut prediction = Setup::<f64>::new(&input, shape, weights);
     prediction.write(Inter::Untouched, Intra::Untouched, Byte::Untouched, &output);
 
     let origin = pzip::testing::read_first_k_f64(&input, 760);
@@ -40,19 +37,16 @@ fn compression_using_last_value_all_once_f64_raw() {
 #[test]
 #[ignore]
 fn compression_using_last_value_all_once_f32_raw() {
-    let input = String::from("/home/ucyo/rust/pzip/data/pres.1-90-181-361.f32.bin");
-    let output = String::from("/home/ucyo/rust/pzip/data/lastvalue.all.f32.pred");
+    let input = String::from("/home/ucyo/rust/pzip/data/icon.ml.qv.f32.little.4x90x351x901_0.raw");
+    let output = String::from("/tmp/testing32.pzip");
     let shape = pzip::Shape {
         z: 90,
-        y: 181,
-        x: 361,
+        y: 351,
+        x: 901,
     };
-    let weights = vec![Weight {
-        coeff: 1,
-        pos: Position { z: 0, y: 0, x: 1 },
-    }];
+    let weights = vec![Position { z: 0, y: 0, x: 1 }];
 
-    let prediction = Setup::<f32>::new(&input, shape, weights);
+    let mut prediction = Setup::<f32>::new(&input, shape, weights);
     prediction.write(
         Inter::Untouched,
         Intra::Untouched,
