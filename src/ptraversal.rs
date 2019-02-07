@@ -139,18 +139,58 @@ pub fn get_values_with_default_at_nonexistent_neighbours(shape: &Coordinate, pos
 
 
 use std::ops::{AddAssign, Mul};
-use std::ops::{Generator, GeneratorState};
-pub fn single_neighbours<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
-    shape: &'a Coordinate, pos: &'a Coordinate, data: &'a Vec<T>, ring: bool) -> impl Generator<Yield = T, Return = ()> + 'a {
+use std::ops::{Generator};
+pub fn single_neighbours_no_ring<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul>(
+    shape: &'a Coordinate, pos: &'a Coordinate, data: &'a Vec<T>) -> impl Generator<Yield = T, Return = ()> + 'a {
     move || {
-        yield data[0]
+        let offset = calculate_offset(shape, pos) as isize;
+        let ptr = data.as_ptr();
+        let Coordinate{x:dx, y:dy, z:dz} = calculate_dims(shape);
+        let Coordinate{x:nx, y:ny, z:nz} = *shape;
+        let mut ix = 0i32;
+
+        for _ in 0..pos.z * dz {yield T::default();ix += 1;}
+        for _ in 0..nz-pos.z {
+            for _ in 0..pos.y * dy { yield T::default(); ix += 1;}
+            for _ in 0..ny-pos.y {
+                for _ in 0..pos.x * dx { yield T::default(); ix+=1;}
+                for _ in 0..nx-pos.x {
+                    yield unsafe { *ptr.offset(ix as isize - offset) };
+                    ix+=1;
+                }
+            }
+        }
     }
 }
+
+pub fn single_neighbours_with_ring<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul>(
+    shape: &'a Coordinate, pos: &'a Coordinate, data: &'a Vec<T>) -> impl Generator<Yield = T, Return = ()> + 'a {
+    move || {
+        let offset = calculate_offset(shape, pos) as isize;
+        let ptr = data.as_ptr();
+        let Coordinate{x:_, y:dy, z:dz} = calculate_dims(shape);
+        let Coordinate{x:nx, y:ny, z:nz} = *shape;
+        let mut ix = 0i32;
+
+        for _ in 0..pos.z * dz {yield T::default();ix += 1;}
+        for _ in 0..nz-pos.z {
+            for _ in 0..pos.y * dy { yield T::default(); ix += 1;}
+            for _ in 0..ny-pos.y {
+                for _ in 0..nx {
+                    let off = (ix as isize - offset).max(0);
+                    yield unsafe { *ptr.offset(off) };
+                    ix += 1;
+                }
+            }
+        }
+    }
+}
+
 
 #[allow(unused_imports)]
 mod tests {
     use super::super::{Position};
-    use super::{neighbours, GeneratorIteratorAdapter, single_neighbours};
+    use super::*;
     #[test]
     fn test_artificial_diff() {
 
@@ -184,8 +224,64 @@ mod tests {
             let mut weights: Vec<Position> = Vec::new();
             weights.push(Position { x: 2, y: 1, z: 1 });
 
-            let result: Vec<f32> = GeneratorIteratorAdapter(single_neighbours(&tr, &weights[0], &data, false)).collect();
+            let result: Vec<f32> = GeneratorIteratorAdapter(single_neighbours_no_ring(&tr, &weights[0], &data)).collect();
             assert_eq!(result[24], 0f32);
+            assert_eq!(result[26], 12f32);
+        }
+    }
+    #[test]
+    fn test_generic_neighbours_no_ring() {
+
+        let data: Vec<f32> = vec![
+            0.0, 1.0, 2.0,
+            3.0, 4.0, 5.0,
+            6.0, 7.0, 8.0,
+
+            9.0, 10.0, 11.0,
+            12.0, 13.0, 14.0,
+            15.0, 16.0, 17.0,
+
+            18.0, 19.0, 20.0,
+            21.0, 22.0, 23.0,
+            24.0, 25.0, 26.0,
+        ];
+
+        {
+            let tr = Position{x:3, y:3, z:3};
+            let mut weights: Vec<Position> = Vec::new();
+            weights.push(Position { x: 2, y: 1, z: 1 });
+
+            let result: Vec<f32> = GeneratorIteratorAdapter(single_neighbours_no_ring(&tr, &weights[0], &data)).collect();
+            assert_eq!(result[24], 0f32);
+            assert_eq!(result[26], 12f32);
+        }
+    }
+
+
+    #[test]
+    fn test_generic_neighbours_with_ring() {
+
+        let data: Vec<f32> = vec![
+            0.0, 1.0, 2.0,
+            3.0, 4.0, 5.0,
+            6.0, 7.0, 8.0,
+
+            9.0, 10.0, 11.0,
+            12.0, 13.0, 14.0,
+            15.0, 16.0, 17.0,
+
+            18.0, 19.0, 20.0,
+            21.0, 22.0, 23.0,
+            24.0, 25.0, 26.0,
+        ];
+
+        {
+            let tr = Position{x:3, y:3, z:3};
+            let mut weights: Vec<Position> = Vec::new();
+            weights.push(Position { x: 2, y: 1, z: 1 });
+
+            let result: Vec<f32> = GeneratorIteratorAdapter(single_neighbours_with_ring(&tr, &weights[0], &data)).collect();
+            assert_eq!(result[24], 10f32);
             assert_eq!(result[26], 12f32);
         }
     }
