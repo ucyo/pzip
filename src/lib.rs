@@ -16,8 +16,8 @@ use position::Position;
 use testing::{FileToBeCompressed, Source};
 use transform::{Byte, Compact, Inter, Intra};
 use transform::{ByteMapping, CompactMapping, InterMapping, IntraMapping};
-use traversal::{predictions, GeneratorIteratorAdapter};
-use traversal::{Predictor, Traversal};
+use traversal::{neighbours, GeneratorIteratorAdapter};
+use traversal::{Traversal};
 
 #[derive(Debug, PartialEq)]
 pub struct Shape {
@@ -34,11 +34,11 @@ pub struct Weight {
 pub struct Setup<T> {
     source: testing::Source<T>,
     shape: Shape,
-    weights: Vec<Weight>,
+    weights: Vec<Position>,
 }
 
 impl Setup<f64> {
-    pub fn new(input: &String, shape: Shape, weights: Vec<Weight>) -> Self {
+    pub fn new(input: &String, shape: Shape, weights: Vec<Position>) -> Self {
         let source: Source<f64> = Source::new(input);
         Setup {
             source,
@@ -47,27 +47,19 @@ impl Setup<f64> {
         }
     }
 
-    fn to_predictor(mut self) -> Predictor<f64> {
-        self.source.load().expect("Error while loading data");
-        let traversal = Traversal::new(self.shape.z, self.shape.y, self.shape.x);
-        Predictor {
-            traversal,
-            weights: self.weights,
-            data: self.source.data,
-        }
-    }
-
-    pub fn write(self, h: Inter, k: Intra, b: Byte, output: &String) {
-        let mut p = self.to_predictor();
-        let generator_iterator = GeneratorIteratorAdapter(predictions(&mut p));
-        let results: Vec<f64> = generator_iterator.collect();
+    pub fn write(&mut self, h: Inter, k: Intra, b: Byte, output: &String) {
+        let tr = Traversal::new(self.shape.z, self.shape.y, self.shape.x);
+        self.source.load().expect("Wrong loading");
+        let generator_iterator = GeneratorIteratorAdapter(neighbours(tr, &self.source.data, &self.weights));
+        let results: Vec<f64> = generator_iterator.flatten().collect();
         let diff: Vec<u64> = results
             .iter()
             .map(|a| h.to_u64(*a))
-            .zip(p.data.iter().map(|a| h.to_u64(*a)))
+            .zip(self.source.data.iter().map(|a| h.to_u64(*a)))
             .map(|(a, b)| k.to_new_u64(a) ^ k.to_new_u64(b)) // TODO eliminate dereferencing
             .collect();
         let mut tmp: Vec<u8> = Vec::new();
+        dbg!(&diff);
         for n in diff {
             let _ = tmp.write_u64::<LittleEndian>(n);
         }
@@ -82,7 +74,7 @@ impl Setup<f64> {
 }
 
 impl Setup<f32> {
-    pub fn new(input: &String, shape: Shape, weights: Vec<Weight>) -> Self {
+    pub fn new(input: &String, shape: Shape, weights: Vec<Position>) -> Self {
         let source: Source<f32> = Source::new(input);
         Setup {
             source,
@@ -91,28 +83,18 @@ impl Setup<f32> {
         }
     }
 
-    fn to_predictor(mut self) -> Predictor<f32> {
-        self.source.load().expect("Error while loading data");
-        let traversal = Traversal::new(self.shape.z, self.shape.y, self.shape.x);
-        Predictor {
-            traversal,
-            weights: self.weights,
-            data: self.source.data,
-        } // fix for f32
-    }
-
-    pub fn write(self, h: Inter, k: Intra, b: Byte, c: Compact, output: &String) {
-        let mut p = self.to_predictor();
-        let generator_iterator = GeneratorIteratorAdapter(predictions(&mut p));
-        let results: Vec<f32> = generator_iterator.collect();
+    pub fn write(&mut self, h: Inter, k: Intra, b: Byte, c: Compact, output: &String) {
+        let tr = Traversal::new(self.shape.z, self.shape.y, self.shape.x);
+        self.source.load().expect("Wrong loading");
+        let generator_iterator = GeneratorIteratorAdapter(neighbours(tr, &self.source.data, &self.weights));
+        let results: Vec<f32> = generator_iterator.flatten().collect();
         let diff: Vec<u32> = results
             .iter()
             .map(|a| h.to_u32(*a))
-            .zip(p.data.iter().map(|a| h.to_u32(*a)))
+            .zip(self.source.data.iter().map(|a| h.to_u32(*a)))
             .map(|(a, b)| k.to_new_u32(a) ^ k.to_new_u32(b)) // TODO eliminate dereferencing
             .collect();
         let diff = c.compact_u32(diff);
-
         let mut tmp: Vec<u8> = Vec::new();
         for n in diff {
             let _ = tmp.write_u32::<LittleEndian>(n);
