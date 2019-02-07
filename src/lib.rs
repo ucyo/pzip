@@ -11,6 +11,7 @@ pub mod position;
 pub mod testing;
 pub mod transform;
 pub mod traversal;
+pub mod ptraversal;
 
 use position::Position;
 use testing::{FileToBeCompressed, Source};
