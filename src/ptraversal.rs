@@ -136,6 +136,7 @@ pub fn get_values_with_default_at_nonexistent_neighbours(shape: &Coordinate, pos
     result
 }
 
+#[allow(unused_imports)]
 mod tests {
     use super::super::{Position};
     use super::{neighbours};
