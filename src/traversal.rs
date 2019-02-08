@@ -1,3 +1,5 @@
+#![deprecated(since="0.1.0", note="Please use 'ptraversal' instead.")]
+
 use std::convert::From;
 use std::ops::{AddAssign, Mul};
 use std::ops::{Generator, GeneratorState};
