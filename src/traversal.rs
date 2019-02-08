@@ -2,7 +2,6 @@
 
 use std::convert::From;
 use std::ops::{AddAssign, Mul};
-use std::ops::{Generator, GeneratorState};
 
 use super::position::Position;
 use super::Weight;
@@ -192,6 +191,7 @@ pub mod predictors {
     }
 }
 
+use std::ops::Generator;
 #[deprecated(since = "0.1.0", note = "use 'neighbours' instead")]
 pub fn predictions<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
     p: &'a mut Predictor<T>,
@@ -296,21 +296,7 @@ pub fn neighbours<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + 
     }
 }
 
-pub struct GeneratorIteratorAdapter<G>(pub G);
-
-impl<G> Iterator for GeneratorIteratorAdapter<G>
-where
-    G: Generator<Return = ()>,
-{
-    type Item = G::Yield;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match unsafe { self.0.resume() } {
-            GeneratorState::Yielded(x) => Some(x),
-            GeneratorState::Complete(_) => None,
-        }
-    }
-}
+use super::gen::GeneratorIteratorAdapter;
 
 #[allow(unused_imports)]
 mod tests {
