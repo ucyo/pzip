@@ -41,7 +41,7 @@ fn small_small_comparison(c: &mut Criterion) {
     let shape = Coordinate{x:55, y:35, z:70};
     let mut neihgbours: Vec<Coordinate> = Vec::new();
     neihgbours.push(Coordinate { x: 1, y: 0, z: 0 });
-    c.bench_functions("No Ring", funcs, (shape, neihgbours));
+    c.bench_functions("1 Neighour/S 55x35x70 No Ring", funcs, (shape, neihgbours));
 }
 
 fn small_medium_comparison(c: &mut Criterion) {
@@ -49,7 +49,7 @@ fn small_medium_comparison(c: &mut Criterion) {
     let shape = Coordinate{x:950, y:350, z:70};
     let mut neihgbours: Vec<Coordinate> = Vec::new();
     neihgbours.push(Coordinate { x: 1, y: 0, z: 0 });
-    c.bench_functions("No Ring", funcs, (shape, neihgbours));
+    c.bench_functions("1 Neighour/S 950x350x70 No Ring", funcs, (shape, neihgbours));
 }
 
 fn small_big_comparison(c: &mut Criterion) {
@@ -57,7 +57,7 @@ fn small_big_comparison(c: &mut Criterion) {
     let shape = Coordinate{x:1250, y:550, z:300};
     let mut neihgbours: Vec<Coordinate> = Vec::new();
     neihgbours.push(Coordinate { x: 1, y: 0, z: 0 });
-    c.bench_functions("No Ring", funcs, (shape, neihgbours));
+    c.bench_functions("1 Neighour/S 1250x550x300 No Ring", funcs, (shape, neihgbours));
 }
 fn medium_small_comparison(c: &mut Criterion) {
     let funcs = prepare_functions();
@@ -67,7 +67,7 @@ fn medium_small_comparison(c: &mut Criterion) {
     neihgbours.push(Coordinate { x: 1, y: 2, z: 0 });
     neihgbours.push(Coordinate { x: 2, y: 5, z: 0 });
     neihgbours.push(Coordinate { x: 4, y: 2, z: 1 });
-    c.bench_functions("No Ring", funcs, (shape, neihgbours));
+    c.bench_functions("4 Neighour/S 55x35x70 No Ring", funcs, (shape, neihgbours));
 }
 
 
@@ -79,7 +79,7 @@ fn medium_medium_comparison(c: &mut Criterion) {
     neihgbours.push(Coordinate { x: 1, y: 2, z: 0 });
     neihgbours.push(Coordinate { x: 2, y: 5, z: 0 });
     neihgbours.push(Coordinate { x: 4, y: 2, z: 1 });
-    c.bench_functions("No Ring", funcs, (shape, neihgbours));
+    c.bench_functions("4 Neighour/S 950x350x70 No Ring", funcs, (shape, neihgbours));
 }
 
 fn medium_big_comparison(c: &mut Criterion) {
@@ -90,7 +90,7 @@ fn medium_big_comparison(c: &mut Criterion) {
     neihgbours.push(Coordinate { x: 1, y: 2, z: 0 });
     neihgbours.push(Coordinate { x: 2, y: 5, z: 0 });
     neihgbours.push(Coordinate { x: 4, y: 2, z: 1 });
-    c.bench_functions("No Ring", funcs, (shape, neihgbours));
+    c.bench_functions("4 Neighour/S 1250x550x300 No Ring", funcs, (shape, neihgbours));
 }
 
 fn big_small_comparison(c: &mut Criterion) {
@@ -105,7 +105,7 @@ fn big_small_comparison(c: &mut Criterion) {
     neihgbours.push(Coordinate { x: 6, y: 1, z: 2 });
     neihgbours.push(Coordinate { x: 2, y: 3, z: 0 });
     neihgbours.push(Coordinate { x: 4, y: 2, z: 1 });
-    c.bench_functions("No Ring", funcs, (shape, neihgbours));
+    c.bench_functions("8 Neighour/S 55x35x70 No Ring", funcs, (shape, neihgbours));
 }
 fn big_medium_comparison(c: &mut Criterion) {
     let funcs = prepare_functions();
@@ -119,7 +119,7 @@ fn big_medium_comparison(c: &mut Criterion) {
     neihgbours.push(Coordinate { x: 6, y: 1, z: 2 });
     neihgbours.push(Coordinate { x: 2, y: 3, z: 0 });
     neihgbours.push(Coordinate { x: 4, y: 2, z: 1 });
-    c.bench_functions("No Ring", funcs, (shape, neihgbours));
+    c.bench_functions("8 Neighour/S 950x350x70 No Ring", funcs, (shape, neihgbours));
 }
 
 fn big_big_comparison(c: &mut Criterion) {
@@ -134,17 +134,17 @@ fn big_big_comparison(c: &mut Criterion) {
     neihgbours.push(Coordinate { x: 6, y: 1, z: 2 });
     neihgbours.push(Coordinate { x: 2, y: 3, z: 0 });
     neihgbours.push(Coordinate { x: 4, y: 2, z: 1 });
-    c.bench_functions("No Ring", funcs, (shape, neihgbours));
+    c.bench_functions("8 Neighour/S 1250x550x300 No Ring", funcs, (shape, neihgbours));
 }
 
 criterion_group!(
     analysis,
     // big_big_comparison,
     // big_medium_comparison,
-    // big_small_comparison,
+    big_small_comparison,
     // medium_big_comparison,
     // medium_medium_comparison,
-    // medium_small_comparison,
+    medium_small_comparison,
     // small_big_comparison,
     // small_medium_comparison,
     small_small_comparison,
