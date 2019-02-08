@@ -1,5 +1,5 @@
 use super::position::Position as Coordinate;
-use super::traversal::GeneratorIteratorAdapter;
+use super::gen::GeneratorIteratorAdapter;
 
 pub fn neighbours(shape: &Coordinate, pos: &Vec<Coordinate>, data: &Vec<f32>, ring: bool) -> Vec<Vec<f32>>{
     if ring {

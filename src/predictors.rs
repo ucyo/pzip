@@ -1,5 +1,5 @@
 use super::position::Position;
-use super::traversal::{GeneratorIteratorAdapter};
+use super::gen::{GeneratorIteratorAdapter};
 use super::ptraversal::{single_neighbours_grouped_no_ring};
 
 pub trait PredictorTrait<T> {
@@ -38,6 +38,7 @@ pub mod predictors {
     }
 }
 
+#[allow(unused_imports)]
 mod tests {
     use super::*;
 

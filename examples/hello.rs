@@ -1,7 +1,8 @@
 /// Example on how to use neighbours
 use pzip::position::Position;
 use pzip::testing::{FileToBeCompressed, Source};
-use pzip::traversal::{neighbours, GeneratorIteratorAdapter, Traversal};
+use pzip::traversal::{neighbours, Traversal};
+use pzip::gen::GeneratorIteratorAdapter;
 
 fn main() {
     let input = String::from("/home/ucyo/rust/pzip/data/emac.ml.tm1.f32.little.5x90x160x320_0.raw");

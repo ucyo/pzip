@@ -5,7 +5,8 @@ use rand::{thread_rng, Rng};
 
 use pzip::ptraversal::{single_neighbours_grouped_no_ring};
 use pzip::position::Position as Coordinate;
-use pzip::traversal::{neighbours as neighboursfn, GeneratorIteratorAdapter, Traversal};
+use pzip::traversal::{neighbours as neighboursfn, Traversal};
+use pzip::gen::GeneratorIteratorAdapter;
 
 fn random_number_generator_f32(min: f32, max: f32, size: usize) -> Vec<f32> {
     let v: Vec<f32> = thread_rng().sample_iter(&Standard).take(size).collect();

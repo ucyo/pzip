@@ -13,13 +13,14 @@ pub mod transform;
 pub mod traversal;
 pub mod ptraversal;
 pub mod predictors;
+pub mod gen;
 
 use position::Position;
 use testing::{FileToBeCompressed, Source};
 use transform::{Byte, Compact, Inter, Intra};
 use transform::{ByteMapping, CompactMapping, InterMapping, IntraMapping};
-use traversal::{neighbours, GeneratorIteratorAdapter};
-use traversal::{Traversal};
+use traversal::{neighbours, Traversal};
+use gen::GeneratorIteratorAdapter;
 
 #[derive(Debug, PartialEq)]
 pub struct Shape {
