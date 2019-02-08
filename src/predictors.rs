@@ -34,7 +34,22 @@ impl<T: AddAssign<<T as Mul>::Output>+Default+Copy+Mul + Sum<<T as Mul>::Output>
 pub mod predictors {
     use super::*;
     pub fn get_last_value_f32() -> Ignorant<f32> {
-        Ignorant::<f32> { coeff:vec![1f32], cells: vec![Position{x:1,y:0,z:0}] }
+        let coeff: Vec<f32> = vec![1.0];
+        let cells = vec![Position{x:1,y:0,z:0}];
+        Ignorant::<f32> { coeff, cells }
+    }
+    pub fn get_lorenz_f32() -> Ignorant<f32> {
+        let coeff: Vec<f32> = vec![1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
+        let cells = vec![
+            Position{x:1,y:0,z:0},
+            Position{x:1,y:1,z:1},
+            Position{x:0,y:0,z:1},
+            Position{x:0,y:1,z:0},
+            Position{x:1,y:1,z:0},
+            Position{x:1,y:0,z:1},
+            Position{x:0,y:1,z:1},
+        ];
+        Ignorant::<f32> { coeff, cells }
     }
 }
 
@@ -59,15 +74,30 @@ mod tests {
         ];
 
         let shape = Position{x:3, y:3, z:3};
-        let mut p = predictors::get_last_value_f32();
-        let result = p.consume(&data, &shape, false);
-        let expected: Vec<f32> = vec![
-            0.0,0.0,1.0,
-            0.0,3.0,4.0,
-            0.0,6.0,7.0,
-            0.0,9.0,10.0,
-            0.0,12.0,13.0,
-            0.0,15.0,16.0,0.0,18.0,19.0,0.0,21.0,22.0,0.0,24.0,25.0];
-        assert_eq!(result, expected)
+
+        {
+            let mut p = predictors::get_last_value_f32();
+            let result = p.consume(&data, &shape, false);
+            let expected: Vec<f32> = vec![
+                0.0,0.0,1.0,
+                0.0,3.0,4.0,
+                0.0,6.0,7.0,
+                0.0,9.0,10.0,
+                0.0,12.0,13.0,
+                0.0,15.0,16.0,0.0,18.0,19.0,0.0,21.0,22.0,0.0,24.0,25.0];
+            assert_eq!(result, expected)
+        }
+        {
+            let mut p = predictors::get_lorenz_f32();
+            let result = p.consume(&data, &shape, false);
+            let expected: Vec<f32> = vec![
+                0.0,0.0,1.0,
+                0.0,4.0,5.0,
+                3.0,7.0,8.0,
+                0.0,10.0,11.0,
+                12.0,13.0,14.0,
+                15.0,16.0,17.0,9.0,19.0,20.0,21.0,22.0,23.0,24.0,25.0,26.0]; //TODO:Check if result is actually correct
+            assert_eq!(result, expected)
+        }
     }
 }
