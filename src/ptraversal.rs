@@ -373,4 +373,357 @@ mod tests {
             assert_eq!(result[26], vec![12f32, 25f32]);
         }
     }
+    #[test]
+    fn test_fetch() {
+        let data = vec![
+            0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0,
+            16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0,
+        ];
+        let tr = Position{x:3, y:3, z:3};
+
+        let mut weights: Vec<Position> = Vec::new();
+        weights.push(Position { x: 0, y: 1, z: 1 });
+
+        let results: Vec<f64> = GeneratorIteratorAdapter(single_neighbours_grouped_with_ring(&tr, &weights, &data)).map(|x|x[0]).collect();
+
+        assert_eq!(results[20], 0f64);
+        assert_eq!(results[17], 5f64);
+        assert_eq!(results[11], 0f64);
+    }
+
+    #[test]
+    fn get_all_predictions() {
+        let data = vec![
+            0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0,
+            16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0,
+        ];
+        let tr = Position{x:3, y:3, z:3};
+
+        let mut weights: Vec<Position> = Vec::new();
+        weights.push(Position { x: 1, y: 0, z: 0 });
+
+        let generator_iterator = GeneratorIteratorAdapter(single_neighbours_no_ring(&tr, &weights[0], &data));
+        let results: Vec<f64> = generator_iterator.collect();
+        assert_eq!(
+            results,
+            vec![
+                0.0, 0.0, 1.0, 0.0, 3.0, 4.0, 0.0, 6.0, 7.0, 0.0, 9.0, 10.0, 0.0, 12.0, 13.0, 0.0,
+                15.0, 16.0, 0.0, 18.0, 19.0, 0.0, 21.0, 22.0, 0.0, 24.0, 25.0
+            ]
+        );
+
+        for (i, c) in results.iter().enumerate() {
+            println!("{}: {}", i, c);
+        }
+    }
+
+    #[test]
+    fn extended_fetch_test_for_traversal() {
+        let data = vec![
+            0.0, 1.0, 2.0,
+            3.0, 4.0, 5.0,
+            6.0, 7.0, 8.0,
+
+            9.0, 10.0, 11.0,
+            12.0, 13.0, 14.0,
+            15.0, 16.0, 17.0,
+
+            18.0, 19.0, 20.0,
+            21.0, 22.0, 23.0,
+            24.0, 25.0, 26.0,
+        ];
+
+        {
+            let tr = Position{x:3, y:3, z:3};
+            let mut weights: Vec<Position> = Vec::new();
+            weights.push(Position { x: 1, y: 0, z: 2 });
+
+            let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(single_neighbours_grouped_with_ring(&tr, &weights, &data)).collect();
+            assert_eq!(result[20], vec![1f64]);
+            assert_eq!(result[17], vec![0f64]);
+            assert_eq!(result[26], vec![7f64]);
+            assert_eq!(result[18], vec![0f64]);
+            assert_eq!(result[9], vec![0f64]);
+            assert_eq!(result[13], vec![0f64]);
+            assert_eq!(result[5], vec![0f64]);
+            assert_eq!(result[19], vec![0f64]);
+            assert_eq!(result[11], vec![0f64]);
+            assert_eq!(result[10], vec![0f64]);
+            assert_eq!(result[9], vec![0f64]);
+            assert_eq!(result[1], vec![0f64]);
+            assert_eq!(result[22], vec![3f64]);
+        }
+
+        {   let tr = Position{x:3, y:3, z:3};
+            let mut weights: Vec<Position> = Vec::new();
+            weights.push(Position { x: 1, y: 2, z: 0 });
+
+
+            let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(single_neighbours_grouped_with_ring(&tr, &weights, &data)).collect();
+            assert_eq!(result[19], vec![0f64]);
+            assert_eq!(result[20], vec![0f64]);
+            assert_eq!(result[17], vec![10f64]);
+            assert_eq!(result[26], vec![19f64]);
+            assert_eq!(result[18], vec![0f64]);
+            assert_eq!(result[9], vec![0f64]);
+            assert_eq!(result[13], vec![0f64]);
+            assert_eq!(result[5], vec![0f64]);
+            assert_eq!(result[25], vec![18f64]);
+            assert_eq!(result[18], vec![0f64]);
+            assert_eq!(result[16], vec![9f64]);
+        }
+
+        {   let tr = Position{x:3, y:3, z:3};
+            let mut weights: Vec<(Position)> = Vec::new();
+            weights.push(Position { x: 3, y: 3, z: 0 });
+
+            let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(single_neighbours_grouped_with_ring(&tr, &weights, &data)).collect();
+            assert_eq!(result[19], vec![0f64]);
+            assert_eq!(result[20], vec![0f64]);
+            assert_eq!(result[17], vec![0f64]);
+            assert_eq!(result[26], vec![0f64]);
+            assert_eq!(result[18], vec![0f64]);
+            assert_eq!(result[9], vec![ 0f64]);
+            assert_eq!(result[13], vec![0f64]);
+            assert_eq!(result[5], vec![ 0f64]);
+            assert_eq!(result[25], vec![0f64]);
+            assert_eq!(result[18], vec![0f64]);
+            assert_eq!(result[16], vec![0f64]);
+        }
+
+        {
+            let tr = Position{x:3, y:3, z:3};
+            let mut weights: Vec<Position> = Vec::new();
+            weights.push(Position { x: 2, y: 1, z: 1 });
+
+            let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&tr, &weights, &data)).collect();
+            assert_eq!(result[24], vec![0f64]);
+            assert_eq!(result[26], vec![12f64]);
+        }
+    }
+
+    // #[test]
+    // fn test_for_negative_positions(){
+
+    //     let data = vec![
+    //         0.0, 1.0, 2.0,
+    //         3.0, 4.0, 5.0,
+    //         6.0, 7.0, 8.0,
+
+    //         9.0, 10.0, 11.0,
+    //         12.0, 13.0, 14.0,
+    //         15.0, 16.0, 17.0,
+
+    //         18.0, 19.0, 20.0,
+    //         21.0, 22.0, 23.0,
+    //         24.0, 25.0, 26.0,
+    //     ];
+
+    //     {
+    //         let tr = Position{x:3, y:3, z:3};
+    //         let mut weights: Vec<Position> = Vec::new();
+    //         weights.push(Position { x: -1, y: 1, z: 0 });
+
+    //         let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&tr, &weights, &data)).collect();
+    //         assert_eq!(result[1], vec![0f64]);
+    //         assert_eq!(result[10], vec![0f64]);
+    //         assert_eq!(result[11], vec![0f64]);
+    //         assert_eq!(result[13], vec![11f64]);
+    //         assert_eq!(result[17], vec![0f64]);
+    //         assert_eq!(result[18], vec![0f64]);
+    //         assert_eq!(result[19], vec![0f64]);
+    //         assert_eq!(result[2], vec![0f64]);
+    //         assert_eq!(result[20], vec![0f64]);
+    //         assert_eq!(result[22], vec![20f64]);
+    //         assert_eq!(result[26], vec![0f64]);
+    //         assert_eq!(result[5], vec![0f64]);
+    //         assert_eq!(result[9], vec![0f64]);
+    //         assert_eq!(result[25], vec![23f64]);
+    //         assert_eq!(result[12], vec![10f64]);
+    //         assert_eq!(result[16], vec![14f64]);
+    //         assert_eq!(result[21], vec![19f64]);
+    //         assert_eq!(result[3], vec![1f64]);
+    //         assert_eq!(result[7], vec![5f64]);
+    //     }
+
+    //     {   let tr = Position{x:3, y:3, z:3};
+    //         let mut weights: Vec<Position> = Vec::new();
+    //         weights.push(Position { x: 0, y: -1, z: 1 });
+
+
+    //         let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&tr, &weights, &data)).collect();
+    //         assert_eq!(result[13], vec![7f64]);
+    //         assert_eq!(result[10], vec![4f64]);
+    //         assert_eq!(result[11], vec![5f64]);
+    //         assert_eq!(result[16], vec![0f64]);
+    //         assert_eq!(result[17], vec![0f64]);
+    //         assert_eq!(result[18], vec![12f64]);
+    //         assert_eq!(result[19], vec![13f64]);
+    //         assert_eq!(result[20], vec![14f64]);
+    //         assert_eq!(result[25], vec![0f64]);
+    //         assert_eq!(result[26], vec![0f64]);
+    //         assert_eq!(result[5], vec![ 0f64]);
+    //         assert_eq!(result[9], vec![ 3f64]);
+    //     }
+
+    // }
+
+    // #[test]
+    // fn test_negative_positions() {
+    //     let data = vec![
+    //         0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0,
+    //         16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0,
+    //     ];
+    //     let tr = Position{x:3, y:3, z:3};
+
+    //     let mut weights: Vec<Position> = Vec::new();
+    //     weights.push(Position { x: -1, y: 1, z: 0 });
+
+    //         let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&tr, &weights, &data)).collect();
+    //     assert_eq!(result[20], vec![0f64]);
+    //     assert_eq!(result[17], vec![0f64]);
+    //     assert_eq!(result[11], vec![0f64]);
+    //     assert_eq!(result[21], vec![19f64]);
+    //     assert_eq!(result[22], vec![20f64]);
+    //     assert_eq!(result[15], vec![13f64]);
+    //     assert_eq!(result[ 8], vec![0f64]);
+    //     assert_eq!(result[25], vec![23f64]);
+    //     assert_eq!(result[4], vec![2f64]);
+    // }
+
+    // #[test]
+    // fn test_negative_positions_further_away() {
+    //     let data = vec![
+    //         0.0, 1.0, 2.0,
+    //         3.0, 4.0, 5.0,
+    //         6.0, 7.0, 8.0,
+
+    //         9.0, 10.0, 11.0,
+    //         12.0, 13.0, 14.0,
+    //         15.0,16.0, 17.0,
+
+    //         18.0, 19.0, 20.0,
+    //         21.0, 22.0, 23.0,
+    //         24.0, 25.0, 26.0,
+    //     ];
+    //     let tr = Position{x:3, y:3, z:3};
+
+    //     let mut weights: Vec<Position> = Vec::new();
+    //     weights.push(Position { x: -1, y: 1, z: 1 });
+
+    //     let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&tr, &weights, &data)).collect();
+    //     assert_eq!(result[20], vec![0f64]);
+    //     assert_eq!(result[17], vec![0f64]);
+    //     assert_eq!(result[11], vec![0f64]);
+    //     assert_eq!(result[21], vec![10f64]);
+    //     assert_eq!(result[22], vec![11f64]);
+    //     assert_eq!(result[15], vec![4f64]);
+    //     assert_eq!(result[ 8], vec![0f64]);
+    //     assert_eq!(result[25], vec![14f64]);
+    //     assert_eq!(result[4], vec![ 0f64]);
+    // }
+
+    // #[test]
+    // fn test_negative_distance_for_x_max_1() {
+    //     let data = vec![
+    //         0.0, 1.0, 2.0,
+    //         3.0, 4.0, 5.0,
+    //         6.0, 7.0, 8.0,
+
+    //         9.0, 10.0, 11.0,
+    //         12.0, 13.0, 14.0,
+    //         15.0,16.0, 17.0,
+
+    //         18.0, 19.0, 20.0,
+    //         21.0, 22.0, 23.0,
+    //         24.0, 25.0, 26.0,
+    //     ];
+    //     {   let tr = Position{x:3, y:3, z:3};
+    //         let mut weights: Vec<Position> = Vec::new();
+    //         weights.push(Position { x: -1, y: -1, z: 1 });
+
+    //         let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&tr, &weights, &data)).collect();
+
+    //         assert_eq!(result[12], vec![7f64]);
+    //         assert_eq!(result[13], vec![8f64]);
+    //         assert_eq!(result[15], vec![0f64]);
+    //         assert_eq!(result[16], vec![0f64]);
+    //         assert_eq!(result[17], vec![0f64]);
+    //         assert_eq!(result[18], vec![13f64]);
+    //         assert_eq!(result[19], vec![14f64]);
+    //         assert_eq!(result[20], vec![0f64]);
+    //         assert_eq!(result[21], vec![16f64]);
+    //         assert_eq!(result[24], vec![0f64]);
+    //         assert_eq!(result[25], vec![0f64]);
+    //         assert_eq!(result[26], vec![0f64]);
+    //         assert_eq!(result[3], vec![0f64]);
+    //         assert_eq!(result[5], vec![0f64]);
+    //         assert_eq!(result[6], vec![0f64]);
+    //         assert_eq!(result[9], vec![4f64]);
+    //     }
+    // }
+
+    // #[test]
+    // fn test_negative_distance_for_x_ge_1() {
+    //     let data = vec![
+    //         0.0, 1.0, 2.0,
+    //         3.0, 4.0, 5.0,
+    //         6.0, 7.0, 8.0,
+
+    //         9.0, 10.0, 11.0,
+    //         12.0, 13.0, 14.0,
+    //         15.0,16.0, 17.0,
+
+    //         18.0, 19.0, 20.0,
+    //         21.0, 22.0, 23.0,
+    //         24.0, 25.0, 26.0,
+    //     ];
+    //     {   let tr = Position{x:3, y:3, z:3};
+    //         let mut weights: Vec<Position> = Vec::new();
+    //         weights.push(Position { x:  0, y: 0, z: 1 });
+    //         weights.push(Position { x:  0, y: -1, z: 1 });
+    //         weights.push(Position { x:  0, y: 1, z: 1 });
+    //         weights.push(Position { x:  -1, y: 0, z: 2 });
+    //         weights.push(Position { x: -2, y: 1, z: 0 });
+    //         weights.push(Position { x: -1, y: 1, z: 0 });
+    //         weights.push(Position { x: -1, y: 0, z: 1 });
+    //         weights.push(Position { x: 1, y: 0, z: 1 });
+    //         // weights.push(Position { x: -1, y: 2, z: 0 }); // TODO: If I don't get a hit it is wrong
+
+    //         let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&tr, &weights, &data)).collect();
+
+    //         assert_eq!(result[21], vec![12.0, 15.0, 9.0, 4.0, 20.0, 19.0, 13.0, 0.0]);
+    //         assert_eq!(result[24], vec![15.0, 0.0, 12.0, 7.0, 23.0, 22.0, 16.0, 0.0]);
+    //         assert_eq!(result[7],  vec![0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0]);
+    //         assert_eq!(result[16], vec![7.0, 0.0, 4.0, 0.0, 0.0, 14.0, 8.0, 6.0]);
+    //         assert_eq!(result[17], vec![8.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 7.0]);
+    //     }
+    // }
+
+
+    // #[test]
+    // fn test_negative_distance_groups() {
+    //     let data = vec![
+    //         0.0, 1.0, 2.0,
+    //         3.0, 4.0, 5.0,
+    //         6.0, 7.0, 8.0,
+
+    //         9.0, 10.0, 11.0,
+    //         12.0, 13.0, 14.0,
+    //         15.0,16.0, 17.0,
+
+    //         18.0, 19.0, 20.0,
+    //         21.0, 22.0, 23.0,
+    //         24.0, 25.0, 26.0,
+    //     ];
+    //     {   let tr = Position{x:3, y:3, z:3};
+    //         let mut weights: Vec<Position> = Vec::new();
+    //         weights.push(Position { x: 2, y: 1, z: 1 });
+    //         weights.push(Position { x: -2, y: 1, z: 1 });
+
+    //         let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&tr, &weights, &data)).collect();
+
+    //         assert_eq!(result[24], vec![0.0,14.0]);
+    //     }
+    // }
 }

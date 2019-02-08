@@ -226,6 +226,7 @@ fn furthest_neighbour_per_dimension(values: &Vec<Position>) -> Position {
     Position {x,y,z}
 }
 
+#[deprecated(since="0.1.0", note="Please use 'single_neighbours_with_ring' instead.")]
 pub fn neighbours<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
     mut traversal: Traversal<T>, data: &'a Vec<T>, neighbours: &'a Vec<Position>
 ) -> impl Generator<Yield = Vec<T>, Return = ()> + 'a {
@@ -318,6 +319,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn extended_fetch_test_for_traversal() {
         let data = vec![
             0.0, 1.0, 2.0,
