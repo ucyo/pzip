@@ -2,9 +2,9 @@ use std::cmp::{Ordering, PartialEq, PartialOrd};
 
 #[derive(Debug)]
 pub struct Position {
-    pub x: usize,
-    pub y: usize,
-    pub z: usize,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
 }
 
 pub fn max_position(positions: &[Position]) -> &Position {
