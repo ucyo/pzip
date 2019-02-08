@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion, Fun};
-use rand::distributions::{Alphanumeric, Uniform, Standard};
+use rand::distributions::{Standard};
 use rand::{thread_rng, Rng};
 
 
@@ -139,14 +139,14 @@ fn big_big_comparison(c: &mut Criterion) {
 
 criterion_group!(
     analysis,
-    big_big_comparison,
-    big_medium_comparison,
-    big_small_comparison,
-    medium_big_comparison,
-    medium_medium_comparison,
-    medium_small_comparison,
-    small_big_comparison,
-    small_medium_comparison,
+    // big_big_comparison,
+    // big_medium_comparison,
+    // big_small_comparison,
+    // medium_big_comparison,
+    // medium_medium_comparison,
+    // medium_small_comparison,
+    // small_big_comparison,
+    // small_medium_comparison,
     small_small_comparison,
 );
 
