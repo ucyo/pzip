@@ -66,8 +66,6 @@ impl<T: Default + Copy> Traversal<T> {
     }
 }
 
-#[deprecated(since="0.1.0", note="Use 'neighbours' instead")]
-#[allow(deprecated)]
 pub fn predict<T: Copy + AddAssign<<T as Mul>::Output> + Default + From<i32> + Mul>(
     data: &Vec<T>,
     at: usize,
@@ -98,10 +96,6 @@ pub fn predict<T: Copy + AddAssign<<T as Mul>::Output> + Default + From<i32> + M
     result
 }
 
-#[deprecated(
-    since = "0.1.0",
-    note = "Use 'furthest_neighbour_per_dimension' instead"
-)]
 fn predict_maximas(values: &Vec<(i32, Position)>) -> Position {
     let max_x = values.iter().map(|(_, x)| x.x).max();
     let max_y = values.iter().map(|(_, x)| x.y).max();
@@ -192,7 +186,6 @@ pub mod predictors {
 }
 
 use std::ops::Generator;
-#[deprecated(since = "0.1.0", note = "use 'neighbours' instead")]
 pub fn predictions<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
     p: &'a mut Predictor<T>,
 ) -> impl Generator<Yield = T, Return = ()> + 'a {
@@ -265,7 +258,6 @@ fn furthest_neighbour_per_dimension(values: &Vec<Position>) -> Position {
     Position { x, y, z }
 }
 
-#[deprecated(since="0.1.0", note="Please use 'single_neighbours_with_ring' instead.")]
 pub fn neighbours<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + From<i16>>(
     mut traversal: Traversal<T>,
     data: &'a Vec<T>,
@@ -296,11 +288,9 @@ pub fn neighbours<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + 
     }
 }
 
-use super::gen::GeneratorIteratorAdapter;
-
-#[allow(unused_imports)]
 mod tests {
     use super::*;
+    use super::super::gen::GeneratorIteratorAdapter;
     #[test]
     fn test_fetch() {
         let data = vec![

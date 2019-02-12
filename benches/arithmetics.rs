@@ -1,3 +1,4 @@
+#![allow(deprecated, dead_code)]
 use criterion::{criterion_group, criterion_main, Criterion, Fun};
 use rand::distributions::{Standard};
 use rand::{thread_rng, Rng};
@@ -30,7 +31,10 @@ fn prepare_functions() -> Vec<Fun<(pzip::position::Position, Vec<pzip::position:
     });
     let former_implementation = Fun::new("Normal NO ring", |b, (shape, neighbours)| {
         let data = prepare_data_f32(&shape);
-        b.iter(|| {let tr = Traversal::new(shape.x as usize, shape.y as usize, shape.z as usize); let _: Vec<Vec<f32>> = GeneratorIteratorAdapter(neighboursfn(tr, &data, &neighbours)).collect(); ()});
+        b.iter(|| {
+            let tr = Traversal::new(shape.x as usize, shape.y as usize, shape.z as usize);
+            let _: Vec<Vec<f32>> = GeneratorIteratorAdapter(neighboursfn(tr, &data, &neighbours)).collect(); ()
+        });
     });
 
     vec![neighbours_grouped_no_ring, former_implementation]

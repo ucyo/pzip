@@ -1,4 +1,4 @@
-use super::Shape;
+use super::Position;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
@@ -49,7 +49,7 @@ pub struct Config<'a> {
     pub output: &'a String,
     pub coding: CodingMode,
     pub filetype: FileType,
-    pub shape: Shape,
+    pub shape: Position,
     pub predictor: Predictor,
     pub mapping: MapType,
     pub bytemapping: ByteMappingType,
@@ -92,10 +92,10 @@ pub fn parse_args<'a>(args: &'a Vec<String>) -> Config {
 
     assert_eq!(args[5], "-s");
 
-    let shape = Shape {
-        z: args[cli["z"]].parse::<usize>().unwrap_or(1),
-        y: args[cli["y"]].parse::<usize>().unwrap_or(1),
-        x: args[cli["x"]].parse::<usize>().unwrap_or(1),
+    let shape = Position {
+        z: args[cli["z"]].parse::<i32>().unwrap_or(1),
+        x: args[cli["x"]].parse::<i32>().unwrap_or(1),
+        y: args[cli["y"]].parse::<i32>().unwrap_or(1),
     };
 
     assert_eq!(args[9], "-p");
@@ -189,7 +189,7 @@ mod tests {
         assert_eq!(configuration.filetype, FileType::F32);
         assert_eq!(
             configuration.shape,
-            Shape {
+            Position {
                 z: 321,
                 y: 32,
                 x: 12

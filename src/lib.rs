@@ -19,7 +19,7 @@ use position::Position;
 use testing::{FileToBeCompressed, Source};
 use transform::{Byte, Compact, Inter, Intra};
 use transform::{ByteMapping, CompactMapping, InterMapping, IntraMapping};
-use traversal::{neighbours, Traversal};
+use ptraversal::{single_neighbours_grouped_no_ring};
 use gen::GeneratorIteratorAdapter;
 
 #[derive(Debug, PartialEq)]
@@ -36,12 +36,12 @@ pub struct Weight {
 
 pub struct Setup<T> {
     source: testing::Source<T>,
-    shape: Shape,
+    shape: Position,
     weights: Vec<Position>,
 }
 
 impl Setup<f64> {
-    pub fn new(input: &String, shape: Shape, weights: Vec<Position>) -> Self {
+    pub fn new(input: &String, shape: Position, weights: Vec<Position>) -> Self {
         let source: Source<f64> = Source::new(input);
         Setup {
             source,
@@ -51,9 +51,8 @@ impl Setup<f64> {
     }
 
     pub fn write(&mut self, h: Inter, k: Intra, b: Byte, output: &String) {
-        let tr = Traversal::new(self.shape.z, self.shape.y, self.shape.x);
         self.source.load().expect("Wrong loading");
-        let generator_iterator = GeneratorIteratorAdapter(neighbours(tr, &self.source.data, &self.weights));
+        let generator_iterator = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&self.shape, &self.weights, &self.source.data));
         let results: Vec<f64> = generator_iterator.flatten().collect();
         let diff: Vec<u64> = results
             .iter()
@@ -77,7 +76,7 @@ impl Setup<f64> {
 }
 
 impl Setup<f32> {
-    pub fn new(input: &String, shape: Shape, weights: Vec<Position>) -> Self {
+    pub fn new(input: &String, shape: Position, weights: Vec<Position>) -> Self {
         let source: Source<f32> = Source::new(input);
         Setup {
             source,
@@ -87,9 +86,8 @@ impl Setup<f32> {
     }
 
     pub fn write(&mut self, h: Inter, k: Intra, b: Byte, c: Compact, output: &String) {
-        let tr = Traversal::new(self.shape.z, self.shape.y, self.shape.x);
         self.source.load().expect("Wrong loading");
-        let generator_iterator = GeneratorIteratorAdapter(neighbours(tr, &self.source.data, &self.weights));
+        let generator_iterator = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&self.shape, &self.weights, &self.source.data));
         let results: Vec<f32> = generator_iterator.flatten().collect();
         let diff: Vec<u32> = results
             .iter()

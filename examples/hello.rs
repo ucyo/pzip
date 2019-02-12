@@ -1,12 +1,12 @@
 /// Example on how to use neighbours
 use pzip::position::Position;
 use pzip::testing::{FileToBeCompressed, Source};
-use pzip::traversal::{neighbours, Traversal};
+use pzip::ptraversal::single_neighbours_grouped_no_ring;
 use pzip::gen::GeneratorIteratorAdapter;
 
 fn main() {
     let input = String::from("/home/ucyo/rust/pzip/data/emac.ml.tm1.f32.little.5x90x160x320_0.raw");
-    let shape = pzip::Shape {
+    let shape = pzip::position::Position {
         z: 90,
         y: 160,
         x: 320,
@@ -18,10 +18,9 @@ fn main() {
     ];
 
     let mut source: Source<f32> = Source::new(&input);
-    let traversal = Traversal::new(shape.z, shape.y, shape.x);
     let _nbytes = source.load().unwrap();
 
-    let values = GeneratorIteratorAdapter(neighbours(traversal, &source.data, &information));
+    let values = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&shape, &information, &source.data ));
     for environ in values {
         println!("{:?}", environ)
     }
