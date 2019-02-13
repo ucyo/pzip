@@ -132,9 +132,15 @@ fn delta_to_former_power_of_two(val: u32, pos: u32) -> u32 {
 
 fn main() {
     let trth_0 = 2312.262f32.to_bits();
-    let pred_0 = 2312.2787f32.to_bits();  // okayish Delta
-    let pred_0 = 2312.2587f32.to_bits();  // crapy Delta (I did not undershoot that much, apparant because of the 00s)
-    // let pred_0 = 2312.2487f32.to_bits();  // glorious Delta
+
+    // okayish improvement using delta
+    let pred_0 = 2312.2787f32.to_bits();
+
+    // degrading preformance using delta (I did not undershoot that much, apparant because of the 00s)
+    let pred_0 = 2312.2587f32.to_bits();
+
+    // glorious improvement using delta
+    // let pred_0 = 2312.2487f32.to_bits();
 
     println!("TRT      : {:32b}", trth_0);
     println!("OLD      : {:32b} ({})", pred_0, (pred_0^trth_0).leading_zeros());
