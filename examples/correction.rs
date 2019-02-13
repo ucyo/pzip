@@ -3,12 +3,22 @@ pub trait CorrectionTrait {
     fn apply_correction(&self, pred: &u32) -> u32;
 }
 
-/// Correction of the error based on the previous run
-/// The delta of the previous error is added to the current one
+
+/// # PreviousError correction
+///
+/// Correction of the error based on the previous run. The delta of the previous
+/// error is added to the current one with certain parts.
+///
+/// $ corr_t = corr_{t-1} * beta\parts $
+/// $ fpred_t = pred_t + F * corr_t
+/// with F = if pred_{t-1} < truth_{t-1} -1 else +1 $
+///
 #[derive(Debug)]
 pub struct PreviousError {
     overshot: bool,
     offset: u32,
+    beta: u32,   // parts of parts
+    parts: u32,  // absolute parts [default: 100]
 }
 
 impl PreviousError {
@@ -16,7 +26,12 @@ impl PreviousError {
         PreviousError {
             overshot: false,
             offset: 0,
+            beta: 50,
+            parts: 100,
         }
+    }
+    pub fn update_beta(&mut self, val: u32) {
+        self.beta = val.min(self.parts)
     }
 }
 
@@ -27,13 +42,19 @@ impl CorrectionTrait for PreviousError {
     }
     fn apply_correction(&self, pred: &u32) -> u32 {
         if self.overshot {
-            pred - self.offset
+            pred - (self.offset * self.beta) / self.parts
         } else {
-            pred + self.offset
+            pred + (self.offset * self.beta) / self.parts
         }
     }
 }
 
+use std::fmt;
+impl fmt::Display for PreviousError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "PreviousError {{ overshot: {}, offset: {:b} }}", self.overshot, self.offset)
+    }
+}
 #[derive(Debug)]
 pub struct FirstFlipChange {
     overshot: bool,
