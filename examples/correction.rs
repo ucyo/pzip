@@ -4,10 +4,14 @@ pub trait CorrectionTrait {
 }
 
 
-/// # PreviousError correction
+/// PreviousError correction
 ///
-/// Correction of the error based on the previous run. The delta of the previous
-/// error is added to the current one with certain parts.
+/// ## tl;dr
+/// Correction of the prediction by adding the previous error by parts
+/// based on the error of the previous run.
+///
+/// ## Description
+/// The previous error is added to the current one with certain parts.
 ///
 /// $ corr_t = corr_{t-1} * beta\parts $
 /// $ fpred_t = pred_t + F * corr_t
@@ -17,7 +21,7 @@ pub trait CorrectionTrait {
 pub struct PreviousError {
     overshot: bool,
     offset: u32,
-    beta: u32,   // parts of parts
+    beta: u32,   // relative of parts
     parts: u32,  // absolute parts [default: 100]
 }
 
@@ -26,12 +30,15 @@ impl PreviousError {
         PreviousError {
             overshot: false,
             offset: 0,
-            beta: 50,
+            beta: 100,
             parts: 100,
         }
     }
     pub fn update_beta(&mut self, val: u32) {
         self.beta = val.min(self.parts)
+    }
+    pub fn get_parts(&self) -> u32 {
+        self.parts
     }
 }
 
@@ -55,68 +62,93 @@ impl fmt::Display for PreviousError {
         write!(f, "PreviousError {{ overshot: {}, offset: {:b} }}", self.overshot, self.offset)
     }
 }
+
+
+/// DeltaToPowerOf2
+///
+/// ## tl;dr
+/// Correction of the prediction using the delta difference to the previous
+/// or next power of 2.
+///
+/// ## Description
+/// The prediction will be brought closer to the next/former power of two. Has
+/// the prediction overshot the last time such that a bit flip occurred, the
+/// amount of will be subtracted (gaining a bit for LZC) and further decreased
+/// by beta/parts. The same is true for the other direction in case of a
+/// shortcoming of the prediction.
+///
 #[derive(Debug)]
-pub struct FirstFlipChange {
+pub struct DeltaToPowerOf2 {
     overshot: bool,
-    flipbit: u8,
-    offset: u32,
+    restricted: u32,
+    beta: u32,
+    parts: u32,
 }
 
-impl FirstFlipChange {
+impl DeltaToPowerOf2 {
     pub fn new() -> Self {
-        FirstFlipChange { overshot: false, flipbit: 0, offset: 0 }
+        DeltaToPowerOf2 {
+            overshot: false,
+            restricted: 0,
+            beta: 100,
+            parts: 100,
+        }
+    }
+    pub fn update_beta(&mut self, val: u32) {
+        self.beta = val
+    }
+    pub fn get_parts(&self) -> u32 {
+        self.parts
     }
 }
 
-impl CorrectionTrait for FirstFlipChange {
+impl CorrectionTrait for DeltaToPowerOf2 {
     fn calculate_offset(&mut self, truth: &u32, pred: &u32) {
+        self.restricted = (truth ^ pred).leading_zeros();
         self.overshot = pred > truth;
-        self.flipbit = 32 - (truth ^ pred).leading_zeros() as u8;
     }
     fn apply_correction(&self, pred: &u32) -> u32 {
         if self.overshot {
-            pred - self.offset
+            let delta = delta_to_former_power_of_two(*pred, self.restricted);
+            pred - delta - (delta * self.beta) / self.parts
         } else {
-            pred + self.offset
+            let delta = delta_to_next_power_of_two(*pred, self.restricted);
+            pred + delta + (delta * self.beta) / self.parts
         }
     }
 }
 
-fn calculate_msb_ones(num: &u32) -> usize {
-    let next = num.next_power_of_two();
-    let mut pos = 1;
+fn delta_to_next_power_of_two(val: u32, pos: u32) -> u32 {
+    let pos = pos - 1;
+    let val = val << pos >> pos;
+    val.next_power_of_two() - val
+}
 
-    while ((next >> pos) & num) != 0 {
-        pos += 1;
-    }
-    pos - 1
+fn delta_to_former_power_of_two(val: u32, pos: u32) -> u32 {
+    let pos = pos - 1;
+    let val = val << pos >> pos;
+    val - (val.next_power_of_two() >> 1)
 }
 
 fn main() {
     let trth_0 = 2312.262f32.to_bits();
-    let pred_0 = 2312.2787f32.to_bits();
-    // let pred_0 = 2312.2587f32.to_bits();
-    // let pred_0 = 2312.2487f32.to_bits();
+    let pred_0 = 2312.2787f32.to_bits();  // okayish Delta
+    let pred_0 = 2312.2587f32.to_bits();  // crapy Delta (I did not undershoot that much, apparant because of the 00s)
+    // let pred_0 = 2312.2487f32.to_bits();  // glorious Delta
 
     println!("TRT      : {:32b}", trth_0);
-    println!("OLD      : {:32b}", pred_0);
+    println!("OLD      : {:32b} ({})", pred_0, (pred_0^trth_0).leading_zeros());
 
     let mut method = PreviousError::new();
     method.calculate_offset(&trth_0, &pred_0);
     let result = method.apply_correction(&pred_0);
-    print!("NEXT (PE): {:32b}", result);
+    print!("NEXT (FF): {:32b} ({})", result, (result^trth_0).leading_zeros());
     println!(" {:?}", method);
 
-    let mut method = FirstFlipChange::new();
+    let mut method = DeltaToPowerOf2::new();
     method.calculate_offset(&trth_0, &pred_0);
     let result = method.apply_correction(&pred_0);
-
-    print!("NEXT (FF): {:32b}", result);
+    print!("NEXT (FF): {:32b} ({})", result, (result^trth_0).leading_zeros());
     println!(" {:?}", method);
 
-    // let (ten, off) = get_overshot(truth, pred);
-
-    // let adjusted_prediction = adjust_prediction(pred, ten, off);
-    // println!("NEW: {:32b}", adjusted_prediction.to_bits());
-    // println!("ADJ: {:32b}", adjusted_prediction.to_bits() ^ truth.to_bits());
 }
