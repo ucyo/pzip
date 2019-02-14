@@ -9,8 +9,8 @@ pub trait PredictorTrait<T> {
 }
 
 pub struct Ignorant<T> {
-    coeff: Vec<T>,
-    cells: Vec<Position>,
+    pub coeff: Vec<T>,
+    pub cells: Vec<Position>,
 }
 
 use std::ops::{Mul, AddAssign};
@@ -37,6 +37,11 @@ pub mod predictors {
         let coeff: Vec<f32> = vec![1.0];
         let cells = vec![Position{x:1,y:0,z:0}];
         Ignorant::<f32> { coeff, cells }
+    }
+    pub fn get_last_value_f64() -> Ignorant<f64> {
+        let coeff: Vec<f64> = vec![1.0];
+        let cells = vec![Position{x:1,y:0,z:0}];
+        Ignorant::<f64> { coeff, cells }
     }
     pub fn get_lorenz_f32() -> Ignorant<f32> {
         let coeff: Vec<f32> = vec![1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
