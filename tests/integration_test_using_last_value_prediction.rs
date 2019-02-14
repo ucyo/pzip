@@ -3,6 +3,7 @@ use pzip::position::Position as Coordinate;
 use pzip::transform::InterMapping;
 use pzip::transform::{Byte, Compact, Inter, Intra};
 use pzip::{Setup};
+use pzip::predictors::predictors;
 
 #[test]
 #[ignore]
@@ -14,9 +15,9 @@ fn compression_using_last_value_all_once_f64_raw() {
         y: 351,
         x: 901,
     };
-    let weights = vec![Coordinate { z: 0, y: 0, x: 1 }];
+    let predictor = predictors::get_last_value_f64();
 
-    let mut prediction = Setup::<f64>::new(&input, shape, weights);
+    let mut prediction = Setup::<f64>::new(&input, shape, predictor);
     prediction.write(Inter::Untouched, Intra::Untouched, Byte::Untouched, &output);
 
     let origin = pzip::testing::read_first_k_f64(&input, 760);
@@ -44,9 +45,9 @@ fn compression_using_last_value_all_once_f32_raw() {
         y: 351,
         x: 901,
     };
-    let weights = vec![Coordinate { z: 0, y: 0, x: 1 }];
+    let predictor = predictors::get_last_value_f32();
 
-    let mut prediction = Setup::<f32>::new(&input, shape, weights);
+    let mut prediction = Setup::<f32>::new(&input, shape, predictor);
     prediction.write(
         Inter::Untouched,
         Intra::Untouched,
