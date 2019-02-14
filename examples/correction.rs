@@ -113,7 +113,7 @@ impl CorrectionTrait for DeltaToPowerOf2 {
             pred - delta - (delta * self.beta) / self.parts
         } else {
             let delta = delta_to_next_power_of_two(*pred, self.restricted);
-            pred + delta + (delta * self.beta) / self.parts
+            pred + (delta * self.beta) / self.parts
         }
     }
 }
@@ -130,17 +130,18 @@ fn delta_to_former_power_of_two(val: u32, pos: u32) -> u32 {
     val - (val.next_power_of_two() >> 1)
 }
 
+#[allow(unused_variables)]
 fn main() {
     let trth_0 = 2312.262f32.to_bits();
 
     // okayish improvement using delta
-    let pred_0 = 2312.2787f32.to_bits();
+    let pred_0 = 2312.2787f32.to_bits();  //
 
     // degrading preformance using delta (I did not undershoot that much, apparant because of the 00s)
-    let pred_0 = 2312.2587f32.to_bits();
+    // let pred_0 = 2312.2587f32.to_bits();  // + 0
 
     // glorious improvement using delta
-    // let pred_0 = 2312.2487f32.to_bits();
+    // let pred_0 = 2312.2487f32.to_bits();  // + parts
 
     println!("TRT      : {:32b}", trth_0);
     println!("OLD      : {:32b} ({})", pred_0, (pred_0^trth_0).leading_zeros());
