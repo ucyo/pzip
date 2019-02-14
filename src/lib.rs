@@ -34,31 +34,33 @@ pub struct Weight {
     pub pos: Position,
 }
 
+use predictors::{Ignorant, PredictorTrait};
 pub struct Setup<T> {
     source: testing::Source<T>,
     shape: Position,
-    weights: Vec<Position>,
+    predictor: Ignorant<T>,
 }
 
 impl Setup<f64> {
-    pub fn new(input: &String, shape: Position, weights: Vec<Position>) -> Self {
+    pub fn new(input: &String, shape: Position, predictor: Ignorant<f64>) -> Self {
         let source: Source<f64> = Source::new(input);
         Setup {
             source,
             shape,
-            weights,
+            predictor,
         }
     }
 
     pub fn write(&mut self, h: Inter, k: Intra, b: Byte, output: &String) {
         self.source.load().expect("Wrong loading");
-        let generator_iterator = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&self.shape, &self.weights, &self.source.data));
-        let results: Vec<f64> = generator_iterator.flatten().collect();
+        let results = self.predictor.consume(&self.source.data, &self.shape, false);
+        // let generator_iterator = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&self.shape, &self.predictor.cells, &self.source.data));
+        // let results: Vec<f64> = generator_iterator.flatten().collect();
         let diff: Vec<u64> = results
             .iter()
             .map(|a| h.to_u64(*a))
             .zip(self.source.data.iter().map(|a| h.to_u64(*a)))
-            .map(|(a, b)| k.to_new_u64(a) ^ k.to_new_u64(b)) // TODO eliminate dereferencing
+            .map(|(a, b)| k.to_new_u64(a) ^ k.to_new_u64(b))
             .collect();
         let mut tmp: Vec<u8> = Vec::new();
         dbg!(&diff);
@@ -76,24 +78,25 @@ impl Setup<f64> {
 }
 
 impl Setup<f32> {
-    pub fn new(input: &String, shape: Position, weights: Vec<Position>) -> Self {
+    pub fn new(input: &String, shape: Position, predictor: Ignorant<f32>) -> Self {
         let source: Source<f32> = Source::new(input);
         Setup {
             source,
             shape,
-            weights,
+            predictor,
         }
     }
 
     pub fn write(&mut self, h: Inter, k: Intra, b: Byte, c: Compact, output: &String) {
         self.source.load().expect("Wrong loading");
-        let generator_iterator = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&self.shape, &self.weights, &self.source.data));
-        let results: Vec<f32> = generator_iterator.flatten().collect();
+        let results = self.predictor.consume(&self.source.data, &self.shape, false);
+        // let generator_iterator = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&self.shape, &self.weights, &self.source.data));
+        // let results: Vec<f32> = generator_iterator.flatten().collect();
         let diff: Vec<u32> = results
             .iter()
             .map(|a| h.to_u32(*a))
             .zip(self.source.data.iter().map(|a| h.to_u32(*a)))
-            .map(|(a, b)| k.to_new_u32(a) ^ k.to_new_u32(b)) // TODO eliminate dereferencing
+            .map(|(a, b)| k.to_new_u32(a) ^ k.to_new_u32(b))
             .collect();
         let diff = c.compact_u32(diff);
         let mut tmp: Vec<u8> = Vec::new();
