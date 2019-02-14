@@ -288,6 +288,7 @@ pub fn neighbours<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + 
     }
 }
 
+#[allow(unused_variables, dead_code)]
 mod tests {
     use super::*;
     use super::super::gen::GeneratorIteratorAdapter;
@@ -336,7 +337,7 @@ mod tests {
     }
 
     // #[test]
-    #[ignore]
+    // #[ignore]
     fn extended_fetch_test_for_traversal() {
         let data = vec![
             0.0, 1.0, 2.0,
