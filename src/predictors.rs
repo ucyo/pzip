@@ -1,6 +1,6 @@
 use super::position::Position;
 use super::gen::{GeneratorIteratorAdapter};
-use super::ptraversal::{single_neighbours_grouped_no_ring};
+use super::ptraversal::{single_neighbours_grouped_no_ring, single_neighbours_grouped_with_ring};
 
 pub trait PredictorTrait<T> {
     fn predict(&self, infospace: &Vec<T>) -> T;
@@ -15,13 +15,19 @@ pub struct Ignorant<T> {
 
 use std::ops::{Mul, AddAssign};
 use std::iter::{Sum};
+#[allow(unused_assignments)]
 impl<T: AddAssign<<T as Mul>::Output>+Default+Copy+Mul + Sum<<T as Mul>::Output>> PredictorTrait<T> for Ignorant<T> {
     fn update(&mut self, _information: T) {}
     fn predict(&self, infospace: &Vec<T>) -> T {
         infospace.iter().zip(self.coeff.iter()).map(|(v,c)| *v * *c).sum()
     }
-    fn consume(&mut self, data: &Vec<T>, shape: &Position, _ring:bool) -> Vec<T> {
-        let spaces: Vec<Vec<T>> = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(shape, &self.cells, data)).collect();
+    fn consume(&mut self, data: &Vec<T>, shape: &Position, ring: bool) -> Vec<T> {
+        let mut spaces = Vec::new();
+        if ring {
+            spaces = GeneratorIteratorAdapter(single_neighbours_grouped_with_ring(shape, &self.cells, data)).collect();
+        } else {
+            spaces = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(shape, &self.cells, data)).collect();
+        }
         let mut result = Vec::new();
         for (i, space) in spaces.iter().enumerate() {
             result.push(self.predict(space));

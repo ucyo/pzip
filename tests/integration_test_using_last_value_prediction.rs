@@ -53,6 +53,7 @@ fn compression_using_last_value_all_once_f32_raw() {
         Intra::Untouched,
         Byte::Untouched,
         Compact::Untouched,
+        false,
         &output,
     );
 

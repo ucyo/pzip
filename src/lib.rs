@@ -19,8 +19,6 @@ use position::Position;
 use testing::{FileToBeCompressed, Source};
 use transform::{Byte, Compact, Inter, Intra};
 use transform::{ByteMapping, CompactMapping, InterMapping, IntraMapping};
-use ptraversal::{single_neighbours_grouped_no_ring};
-use gen::GeneratorIteratorAdapter;
 
 #[derive(Debug, PartialEq)]
 pub struct Shape {
@@ -54,8 +52,6 @@ impl Setup<f64> {
     pub fn write(&mut self, h: Inter, k: Intra, b: Byte, output: &String) {
         self.source.load().expect("Wrong loading");
         let results = self.predictor.consume(&self.source.data, &self.shape, false);
-        // let generator_iterator = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&self.shape, &self.predictor.cells, &self.source.data));
-        // let results: Vec<f64> = generator_iterator.flatten().collect();
         let diff: Vec<u64> = results
             .iter()
             .map(|a| h.to_u64(*a))
@@ -87,11 +83,9 @@ impl Setup<f32> {
         }
     }
 
-    pub fn write(&mut self, h: Inter, k: Intra, b: Byte, c: Compact, output: &String) {
+    pub fn write(&mut self, h: Inter, k: Intra, b: Byte, c: Compact, ring: bool, output: &String) {
         self.source.load().expect("Wrong loading");
-        let results = self.predictor.consume(&self.source.data, &self.shape, false);
-        // let generator_iterator = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&self.shape, &self.weights, &self.source.data));
-        // let results: Vec<f32> = generator_iterator.flatten().collect();
+        let results = self.predictor.consume(&self.source.data, &self.shape, ring);
         let diff: Vec<u32> = results
             .iter()
             .map(|a| h.to_u32(*a))
