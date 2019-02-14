@@ -335,7 +335,7 @@ mod tests {
         }
     }
 
-    #[test]
+    // #[test]
     #[ignore]
     fn extended_fetch_test_for_traversal() {
         let data = vec![
