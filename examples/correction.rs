@@ -89,7 +89,7 @@ impl DeltaToPowerOf2 {
     pub fn new() -> Self {
         DeltaToPowerOf2 {
             overshot: false,
-            restricted: 0,
+            restricted: 32,
             beta: 100,
             parts: 100,
         }
@@ -110,7 +110,7 @@ impl CorrectionTrait for DeltaToPowerOf2 {
     fn apply_correction(&self, pred: &u32) -> u32 {
         if self.overshot {
             let delta = delta_to_former_power_of_two(*pred, self.restricted);
-            pred - delta - (delta * self.beta) / self.parts
+            pred - (delta * self.beta) / self.parts
         } else {
             let delta = delta_to_next_power_of_two(*pred, self.restricted);
             pred + (delta * self.beta) / self.parts
