@@ -30,8 +30,8 @@ impl PreviousError {
         PreviousError {
             overshot: false,
             offset: 0,
-            beta: 100,
-            parts: 100,
+            beta: 0,
+            parts: 1,
         }
     }
     pub fn update_beta(&mut self, val: u32) {
