@@ -119,7 +119,7 @@ impl CorrectionTrait for DeltaToPowerOf2 {
 }
 
 fn delta_to_next_power_of_two(val: u32, pos: u32) -> u32 {
-    let pos = pos - 1;
+    let pos = if pos > 0 {pos - 1} else {0};
     let val = val << pos >> pos;
     val.next_power_of_two() - val
 }
