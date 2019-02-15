@@ -131,31 +131,43 @@ fn delta_to_former_power_of_two(val: u32, pos: u32) -> u32 {
 }
 
 #[allow(unused_variables)]
+use std::env::args;
+use pzip::testing::{Source, FileToBeCompressed};
 fn main() {
-    let trth_0 = 2312.262f32.to_bits();
+    let arguments: Vec<_> = args().collect();
+    let filename = &arguments[1];
+    let mut source : Source<f32> = Source::new(filename);
+    source.load().unwrap();
 
-    // okayish improvement using delta
-    let pred_0 = 2312.2787f32.to_bits();  //
+    let data: Vec<u32> = source.data.iter().map(|x| x.to_bits()).collect();
+    let mut uncorrected_last_value_prediction = vec![0u32; data.len()];
+    for v in 1..data.len() {
+        uncorrected_last_value_prediction[v] = data[v-1];
+    }
 
-    // degrading preformance using delta (I did not undershoot that much, apparant because of the 00s)
-    // let pred_0 = 2312.2587f32.to_bits();  // + 0
-
-    // glorious improvement using delta
-    // let pred_0 = 2312.2487f32.to_bits();  // + parts
-
-    println!("TRT      : {:32b}", trth_0);
-    println!("OLD      : {:32b} ({})", pred_0, (pred_0^trth_0).leading_zeros());
-
+    let mut corrected_last_value_prediction : Vec<u32> = Vec::new();
+    let mut pred = 0u32;
     let mut method = PreviousError::new();
-    method.calculate_offset(&trth_0, &pred_0);
-    let result = method.apply_correction(&pred_0);
-    print!("NEXT (FF): {:32b} ({})", result, (result^trth_0).leading_zeros());
-    println!(" {:?}", method);
 
-    let mut method = DeltaToPowerOf2::new();
-    method.calculate_offset(&trth_0, &pred_0);
-    let result = method.apply_correction(&pred_0);
-    print!("NEXT (FF): {:32b} ({})", result, (result^trth_0).leading_zeros());
-    println!(" {:?}", method);
+    for value in data.iter() {
+        pred = method.apply_correction(&pred); // TODO: bug!!
+        corrected_last_value_prediction.push(pred);
+        method.calculate_offset(value, &pred);
+    }
+
+    let lzc_data : u32 = data.iter().map(|x| x.leading_zeros()).sum();
+    let lzc_uncorrected_pred : u32 = data.iter().zip(uncorrected_last_value_prediction.iter()).map(|(t,p)| (t^p).leading_zeros()).sum();
+    let lzc_corrected_pred : u32 = data.iter().zip(corrected_last_value_prediction.iter()).map(|(t,p)| (t^p).leading_zeros()).sum();
+
+    let sum_bits = data.len() * 32;
+    println!("      {}", sum_bits);
+    println!("ORIG: {} ({:.4}%)", lzc_data, lzc_data as f32/sum_bits as f32 * 100.0);
+    println!("UNCO: {} ({:.4}%)", lzc_uncorrected_pred, lzc_uncorrected_pred as f32/sum_bits as f32 * 100.0);
+    println!("CORR: {} ({:.4}%)", lzc_corrected_pred, lzc_corrected_pred as f32/sum_bits as f32 * 100.0);
+
+    // for i in 0..data.len() {
+    //     println!("#");
+    //     println!("{:32b}\n{:32b}\n{:32b}", data[i], uncorrected_last_value_prediction[i], corrected_last_value_prediction[i])
+    // }
 
 }
