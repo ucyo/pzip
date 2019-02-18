@@ -30,7 +30,7 @@ impl PreviousError {
         PreviousError {
             overshot: false,
             offset: 0,
-            beta: 0,
+            beta: 1,
             parts: 1,
         }
     }
@@ -44,15 +44,14 @@ impl PreviousError {
 
 impl CorrectionTrait for PreviousError {
     fn calculate_offset(&mut self, truth: &u32, pred: &u32) {
-        self.overshot = pred > truth;
-        self.offset = truth.max(pred) - truth.min(pred);
+        let diff = *truth as i64 - *pred as i64 + self.offset as i64;
+
+        // TODO: Wrong update if prediction is too high
+        // self.overshot = *pred > *truth;
+        self.offset = diff.max(0) as u32;
     }
     fn apply_correction(&self, pred: &u32) -> u32 {
-        if self.overshot {
-            pred - (self.offset * self.beta) / self.parts
-        } else {
-            pred + (self.offset * self.beta) / self.parts
-        }
+        pred + (self.offset * self.beta) / self.parts
     }
 }
 
@@ -140,6 +139,8 @@ fn main() {
     source.load().unwrap();
 
     let data: Vec<u32> = source.data.iter().map(|x| x.to_bits()).collect();
+    // let data = data[..].to_vec();
+    let data: Vec<u32> = vec![4,5,6,8,10,9,0];
     let mut uncorrected_last_value_prediction = vec![0u32; data.len()];
     for v in 1..data.len() {
         uncorrected_last_value_prediction[v] = data[v-1];
@@ -150,9 +151,12 @@ fn main() {
     let mut method = PreviousError::new();
 
     for value in data.iter() {
-        pred = method.apply_correction(&pred); // TODO: bug!!
+        // println!("{} {} {}", value, pred, method);
+        pred = method.apply_correction(&pred);
         corrected_last_value_prediction.push(pred);
-        method.calculate_offset(value, &pred);
+        method.calculate_offset(value, &pred);  // call calculate_correction
+        // println!("\n{:032b}\n{:032b}\n{:032b} Offset {}", value, pred, method.offset, method.overshot);
+        pred = *value;
     }
 
     let lzc_data : u32 = data.iter().map(|x| x.leading_zeros()).sum();
@@ -160,14 +164,13 @@ fn main() {
     let lzc_corrected_pred : u32 = data.iter().zip(corrected_last_value_prediction.iter()).map(|(t,p)| (t^p).leading_zeros()).sum();
 
     let sum_bits = data.len() * 32;
-    println!("      {}", sum_bits);
+    println!("TOTL: {}", sum_bits);
     println!("ORIG: {} ({:.4}%)", lzc_data, lzc_data as f32/sum_bits as f32 * 100.0);
     println!("UNCO: {} ({:.4}%)", lzc_uncorrected_pred, lzc_uncorrected_pred as f32/sum_bits as f32 * 100.0);
     println!("CORR: {} ({:.4}%)", lzc_corrected_pred, lzc_corrected_pred as f32/sum_bits as f32 * 100.0);
 
-    // for i in 0..data.len() {
-    //     println!("#");
-    //     println!("{:32b}\n{:32b}\n{:32b}", data[i], uncorrected_last_value_prediction[i], corrected_last_value_prediction[i])
-    // }
+    println!("{:?}\t data", data);
+    println!("{:?}\t pred", uncorrected_last_value_prediction);
+    println!("{:?}\t corr pred", corrected_last_value_prediction);
 
 }
