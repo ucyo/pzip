@@ -46,12 +46,16 @@ impl CorrectionTrait for PreviousError {
     fn calculate_offset(&mut self, truth: &u32, pred: &u32) {
         let diff = *truth as i64 - *pred as i64 + self.offset as i64;
 
-        // TODO: Wrong update if prediction is too high
-        // self.overshot = *pred > *truth;
-        self.offset = diff.max(0) as u32;
+        // TODO: Works for example data, but not for actual datasets
+        self.overshot = diff < 0;
+        self.offset = diff.abs() as u32;
     }
     fn apply_correction(&self, pred: &u32) -> u32 {
-        pred + (self.offset * self.beta) / self.parts
+        if self.overshot {
+            pred - (self.offset * self.beta) / self.parts
+        } else {
+            pred + (self.offset * self.beta) / self.parts
+        }
     }
 }
 
@@ -139,7 +143,7 @@ fn main() {
     source.load().unwrap();
 
     let data: Vec<u32> = source.data.iter().map(|x| x.to_bits()).collect();
-    // let data = data[..].to_vec();
+    let data = data[303568..303568+9].to_vec();
     let data: Vec<u32> = vec![4,5,6,8,10,9,0];
     let mut uncorrected_last_value_prediction = vec![0u32; data.len()];
     for v in 1..data.len() {
