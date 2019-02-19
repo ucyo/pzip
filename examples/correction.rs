@@ -51,10 +51,15 @@ impl CorrectionTrait for PreviousError {
         self.offset = diff.abs() as u32;
     }
     fn apply_correction(&self, pred: &u32) -> u32 {
+        let correction = (self.offset * self.beta) / self.parts;
         if self.overshot {
-            pred - (self.offset * self.beta) / self.parts
+            if correction > *pred {
+                return 0
+            } else {
+                return pred - correction
+            }
         } else {
-            pred + (self.offset * self.beta) / self.parts
+            pred + correction
         }
     }
 }
@@ -143,8 +148,9 @@ fn main() {
     source.load().unwrap();
 
     let data: Vec<u32> = source.data.iter().map(|x| x.to_bits()).collect();
-    let data = data[303568..303568+9].to_vec();
-    let data: Vec<u32> = vec![4,5,6,8,10,9,0];
+    // let data = data[303568..303568+9].to_vec();
+    // let data = data[..30300].to_vec();
+    // let data: Vec<u32> = vec![4,5,6,8,10,9,0];
     let mut uncorrected_last_value_prediction = vec![0u32; data.len()];
     for v in 1..data.len() {
         uncorrected_last_value_prediction[v] = data[v-1];
@@ -155,7 +161,7 @@ fn main() {
     let mut method = PreviousError::new();
 
     for value in data.iter() {
-        // println!("{} {} {}", value, pred, method);
+        // println!("{:10} {:10} {}", value, pred, method);
         pred = method.apply_correction(&pred);
         corrected_last_value_prediction.push(pred);
         method.calculate_offset(value, &pred);  // call calculate_correction
@@ -173,8 +179,8 @@ fn main() {
     println!("UNCO: {} ({:.4}%)", lzc_uncorrected_pred, lzc_uncorrected_pred as f32/sum_bits as f32 * 100.0);
     println!("CORR: {} ({:.4}%)", lzc_corrected_pred, lzc_corrected_pred as f32/sum_bits as f32 * 100.0);
 
-    println!("{:?}\t data", data);
-    println!("{:?}\t pred", uncorrected_last_value_prediction);
-    println!("{:?}\t corr pred", corrected_last_value_prediction);
+    // println!("{:?}\t data", data);
+    // println!("{:?}\t pred", uncorrected_last_value_prediction);
+    // println!("{:?}\t corr pred", corrected_last_value_prediction);
 
 }
