@@ -92,15 +92,23 @@ pub struct DeltaToPowerOf2 {
     restricted: u32,
     beta: u32,
     parts: u32,
+    delta: u32,
+}
+
+impl fmt::Display for DeltaToPowerOf2 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "DeltaToPowerOf2 {{ overshot: {}, restricted: {}, delta: {} }}", self.overshot, self.restricted, self.delta)
+    }
 }
 
 impl DeltaToPowerOf2 {
     pub fn new() -> Self {
         DeltaToPowerOf2 {
             overshot: false,
-            restricted: 32,
-            beta: 100,
-            parts: 100,
+            restricted: 0,
+            beta: 1,
+            parts: 3,
+            delta: 0,
         }
     }
     pub fn update_beta(&mut self, val: u32) {
@@ -116,14 +124,22 @@ impl CorrectionTrait for DeltaToPowerOf2 {
         self.restricted = (truth ^ pred).leading_zeros();
         self.overshot = pred > truth;
     }
+    #[allow(unused_assignments)]
     fn apply_correction(&mut self, pred: &u32) -> u32 {
+        // println!("{:032b} before correction", pred);
+        if self.restricted < 10 {
+            return *pred;
+        }
+        let mut result = 0u32;
         if self.overshot {
             let delta = delta_to_former_power_of_two(*pred, self.restricted);
-            pred - (delta * self.beta) / self.parts
+            result = pred - (delta * self.beta) / self.parts;
         } else {
             let delta = delta_to_next_power_of_two(*pred, self.restricted);
-            pred + (delta * self.beta) / self.parts
+            result = pred + (delta * self.beta) / self.parts;
         }
+        // println!("{:032b} after correction", result);
+        result
     }
 }
 
@@ -149,8 +165,9 @@ fn main() {
     source.load().unwrap();
 
     let data: Vec<u32> = source.data.iter().map(|x| x.to_bits()).collect();
-    // let data = data[303568..303568+9].to_vec();
-    // let data = data[..30300].to_vec();
+    // let data = data[303568..303568+2].to_vec();
+    // let (start, size) = (90300, 9000);
+    // let data = data[start..start+size].to_vec();
     // let data: Vec<u32> = vec![4,5,6,8,10,9,0];
     let mut uncorrected_last_value_prediction = vec![0u32; data.len()];
     for v in 1..data.len() {
@@ -159,11 +176,12 @@ fn main() {
 
     let mut corrected_last_value_prediction : Vec<u32> = Vec::new();
     let mut pred = 0u32;
-    let mut method = PreviousError::new();
+    let mut method = DeltaToPowerOf2::new();
 
     for value in data.iter() {
-        // println!("{:10} {:10} {}", value, pred, method);
+        // println!("{:032b}\n{:032b} {}", value, pred, method);
         pred = method.apply_correction(&pred);
+        // println!("{:032b} new prediction", pred);
         corrected_last_value_prediction.push(pred);
         method.calculate_offset(value, &pred);  // call calculate_correction
         // println!("\n{:032b}\n{:032b}\n{:032b} Offset {}", value, pred, method.offset, method.overshot);
