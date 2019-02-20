@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 pub trait CorrectionTrait {
     fn calculate_offset(&mut self, truth: &u32, pred: &u32);
     fn apply_correction(&mut self, pred: &u32) -> u32;
@@ -126,8 +128,8 @@ impl CorrectionTrait for DeltaToPowerOf2 {
     }
     #[allow(unused_assignments)]
     fn apply_correction(&mut self, pred: &u32) -> u32 {
-        // println!("{:032b} before correction", pred);
         if self.restricted < 10 {
+            warn!("Restricted < 10 {}", self.restricted);
             return *pred;
         }
         let mut result = 0u32;
@@ -138,7 +140,6 @@ impl CorrectionTrait for DeltaToPowerOf2 {
             let delta = delta_to_next_power_of_two(*pred, self.restricted);
             result = pred + (delta * self.beta) / self.parts;
         }
-        // println!("{:032b} after correction", result);
         result
     }
 }
@@ -158,14 +159,15 @@ fn delta_to_former_power_of_two(val: u32, pos: u32) -> u32 {
 #[allow(unused_variables)]
 use std::env::args;
 use pzip::testing::{Source, FileToBeCompressed};
+use log::{trace, debug, info, warn, error};
 fn main() {
+    env_logger::init();
     let arguments: Vec<_> = args().collect();
     let filename = &arguments[1];
     let mut source : Source<f32> = Source::new(filename);
     source.load().unwrap();
-
     let data: Vec<u32> = source.data.iter().map(|x| x.to_bits()).collect();
-    // let data = data[303568..303568+2].to_vec();
+    let data = data[303568..303568+10].to_vec();
     // let (start, size) = (90300, 9000);
     // let data = data[start..start+size].to_vec();
     // let data: Vec<u32> = vec![4,5,6,8,10,9,0];
@@ -178,13 +180,20 @@ fn main() {
     let mut pred = 0u32;
     let mut method = DeltaToPowerOf2::new();
 
-    for value in data.iter() {
-        // println!("{:032b}\n{:032b} {}", value, pred, method);
+    for (i,value) in data.iter().enumerate() {
+        let uncorrected = pred;
         pred = method.apply_correction(&pred);
-        // println!("{:032b} new prediction", pred);
+        debug!("IX: {:08} Uncorrected: {:032b}", i, uncorrected);
+        debug!("IX: {:08}   Corrected: {:032b} by {}", i, pred, method);
+        debug!("IX: {:08}       Truth: {:032b}", i, value);
+        let (before, after) = ((uncorrected ^ value).leading_zeros(), (pred ^ value).leading_zeros());
+        if before > after {
+         warn!("              Degradation: {:02}", before - after);
+        } else {
+         debug!("             Improvement: {:02}", after - before);
+        }
         corrected_last_value_prediction.push(pred);
-        method.calculate_offset(value, &pred);  // call calculate_correction
-        // println!("\n{:032b}\n{:032b}\n{:032b} Offset {}", value, pred, method.offset, method.overshot);
+        method.calculate_offset(value, &pred);
         pred = *value;
     }
 
@@ -199,19 +208,19 @@ fn main() {
     let worse = data.len() as u32 - same - better;
 
     let sum_bits = data.len() * 32;
-    println!("METD: {}", method);
-    println!("FILE: {}", filename);
-    println!("====");
-    println!("TOTL: {}", sum_bits);
-    println!("ORIG: {} ({:.4}%)", lzc_data, lzc_data as f32/sum_bits as f32 * 100.0);
-    println!("UNCO: {} ({:.4}%)", lzc_uncorrected_pred_sum, lzc_uncorrected_pred_sum as f32/sum_bits as f32 * 100.0);
-    println!("CORR: {} ({:.4}%)", lzc_corrected_pred_sum, lzc_corrected_pred_sum as f32/sum_bits as f32 * 100.0);
-    println!("====");
-    println!("SAME: {} ({:.4}%)", same, same as f32 / data.len() as f32 * 100.0);
-    println!("BETT: {} ({:.4}%)", better, better as f32 / data.len() as f32 * 100.0);
-    println!("WORS: {} ({:.4}%)", worse, worse as f32 / data.len() as f32 * 100.0);
-    // println!("{:?}\t data", data);
-    // println!("{:?}\t pred", uncorrected_last_value_prediction);
-    // println!("{:?}\t corr pred", corrected_last_value_prediction);
+    info!("METD: {}", method);
+    info!("FILE: {}", filename);
+    info!("====");
+    info!("TOTL: {}", sum_bits);
+    info!("ORIG: {} ({:.4}%)", lzc_data, lzc_data as f32/sum_bits as f32 * 100.0);
+    info!("UNCO: {} ({:.4}%)", lzc_uncorrected_pred_sum, lzc_uncorrected_pred_sum as f32/sum_bits as f32 * 100.0);
+    info!("CORR: {} ({:.4}%)", lzc_corrected_pred_sum, lzc_corrected_pred_sum as f32/sum_bits as f32 * 100.0);
+    info!("====");
+    info!("SAME: {} ({:.4}%)", same, same as f32 / data.len() as f32 * 100.0);
+    info!("BETT: {} ({:.4}%)", better, better as f32 / data.len() as f32 * 100.0);
+    info!("WORS: {} ({:.4}%)", worse, worse as f32 / data.len() as f32 * 100.0);
+    // info!("{:?}\t data", data);
+    // info!("{:?}\t pred", uncorrected_last_value_prediction);
+    // info!("{:?}\t corr pred", corrected_last_value_prediction);
 
 }
