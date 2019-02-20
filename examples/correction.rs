@@ -1,6 +1,6 @@
 pub trait CorrectionTrait {
     fn calculate_offset(&mut self, truth: &u32, pred: &u32);
-    fn apply_correction(&self, pred: &u32) -> u32;
+    fn apply_correction(&mut self, pred: &u32) -> u32;
 }
 
 
@@ -50,10 +50,11 @@ impl CorrectionTrait for PreviousError {
         self.overshot = diff < 0;
         self.offset = diff.abs() as u32;
     }
-    fn apply_correction(&self, pred: &u32) -> u32 {
+    fn apply_correction(&mut self, pred: &u32) -> u32 {
         let correction = (self.offset * self.beta) / self.parts;
         if self.overshot {
             if correction > *pred {
+                self.offset = 0;
                 return 0
             } else {
                 return pred - correction
@@ -115,7 +116,7 @@ impl CorrectionTrait for DeltaToPowerOf2 {
         self.restricted = (truth ^ pred).leading_zeros();
         self.overshot = pred > truth;
     }
-    fn apply_correction(&self, pred: &u32) -> u32 {
+    fn apply_correction(&mut self, pred: &u32) -> u32 {
         if self.overshot {
             let delta = delta_to_former_power_of_two(*pred, self.restricted);
             pred - (delta * self.beta) / self.parts
@@ -170,15 +171,27 @@ fn main() {
     }
 
     let lzc_data : u32 = data.iter().map(|x| x.leading_zeros()).sum();
-    let lzc_uncorrected_pred : u32 = data.iter().zip(uncorrected_last_value_prediction.iter()).map(|(t,p)| (t^p).leading_zeros()).sum();
-    let lzc_corrected_pred : u32 = data.iter().zip(corrected_last_value_prediction.iter()).map(|(t,p)| (t^p).leading_zeros()).sum();
+    let lzc_uncorrected_pred: Vec<u32> = data.iter().zip(uncorrected_last_value_prediction.iter()).map(|(t,p)| (t^p).leading_zeros()).collect();
+    let lzc_uncorrected_pred_sum : u32 = lzc_uncorrected_pred.iter().sum();
+    let lzc_corrected_pred: Vec<u32> = data.iter().zip(corrected_last_value_prediction.iter()).map(|(t,p)| (t^p).leading_zeros()).collect();
+    let lzc_corrected_pred_sum : u32 = lzc_corrected_pred.iter().sum();
+
+    let same : u32 = lzc_corrected_pred.iter().zip(lzc_uncorrected_pred.iter()).filter(|(c,u)| c == u).fold(0, |sum, _| sum + 1 );
+    let better : u32 = lzc_corrected_pred.iter().zip(lzc_uncorrected_pred.iter()).filter(|(c,u)| c > u).fold(0, |sum, _| sum + 1 );
+    let worse = data.len() as u32 - same - better;
 
     let sum_bits = data.len() * 32;
+    println!("METD: {}", method);
+    println!("FILE: {}", filename);
+    println!("====");
     println!("TOTL: {}", sum_bits);
     println!("ORIG: {} ({:.4}%)", lzc_data, lzc_data as f32/sum_bits as f32 * 100.0);
-    println!("UNCO: {} ({:.4}%)", lzc_uncorrected_pred, lzc_uncorrected_pred as f32/sum_bits as f32 * 100.0);
-    println!("CORR: {} ({:.4}%)", lzc_corrected_pred, lzc_corrected_pred as f32/sum_bits as f32 * 100.0);
-
+    println!("UNCO: {} ({:.4}%)", lzc_uncorrected_pred_sum, lzc_uncorrected_pred_sum as f32/sum_bits as f32 * 100.0);
+    println!("CORR: {} ({:.4}%)", lzc_corrected_pred_sum, lzc_corrected_pred_sum as f32/sum_bits as f32 * 100.0);
+    println!("====");
+    println!("SAME: {} ({:.4}%)", same, same as f32 / data.len() as f32 * 100.0);
+    println!("BETT: {} ({:.4}%)", better, better as f32 / data.len() as f32 * 100.0);
+    println!("WORS: {} ({:.4}%)", worse, worse as f32 / data.len() as f32 * 100.0);
     // println!("{:?}\t data", data);
     // println!("{:?}\t pred", uncorrected_last_value_prediction);
     // println!("{:?}\t corr pred", corrected_last_value_prediction);
