@@ -173,7 +173,7 @@ fn main() {
     let mut source: Source<f32> = Source::new(filename);
     source.load().unwrap();
     let data: Vec<u32> = source.data.iter().map(|x| x.to_bits()).collect();
-    let (start, size) = (303568, 100);
+    let (start, size) = (30356, 1000);
     let data = data[start..start + size].to_vec();
     // let data: Vec<u32> = vec![4,5,6,8,10,9,0];
     let mut uncorrected_last_value_prediction = vec![0u32; data.len()];

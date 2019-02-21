@@ -5,3 +5,5 @@ TODO.md
 data/
 _utilities_
 .vscode/
+**/*.log
+**/*.tar
