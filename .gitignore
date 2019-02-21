@@ -7,3 +7,4 @@ _utilities_
 .vscode/
 **/*.log
 **/*.tar*
+**/.ipynb_checkpoints/
