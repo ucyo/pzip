@@ -6,4 +6,4 @@ data/
 _utilities_
 .vscode/
 **/*.log
-**/*.tar
+**/*.tar*

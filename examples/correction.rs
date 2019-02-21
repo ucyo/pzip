@@ -1,4 +1,19 @@
 #![allow(unused_imports)]
+/// TODO: Transform into an ENUM.
+/// This could be done if the data being used
+/// by the correction methods are separated into an own struct and the correction
+/// methods are operating on this object (accessing the same attributes).
+
+/// # Application of bias / correction on predictions
+///
+/// ## Experiment: Run 1
+/// The influence of DeltaCorrection should be better. Analysis on why this is
+/// not the case. Currently most of the predictions are untouched by the
+/// correction.
+///
+/// ### Cause: The restricted area should be calculated via diff of truth values
+/// ### Cause: The restricted area should consider number of 1s/0s in prediction
+///
 
 pub trait CorrectionTrait {
     fn calculate_offset(&mut self, truth: &u32, pred: &u32);
@@ -47,7 +62,7 @@ impl CorrectionTrait for PreviousError {
     fn calculate_offset(&mut self, truth: &u32, pred: &u32) {
         let diff = *truth as i64 - *pred as i64 + self.offset as i64;
 
-        // TODO: Works for example data, but not for actual datasets
+        // TODO: Works as 'release', but gets over/underflow if used in 'debug'
         self.overshot = diff < 0;
         self.offset = diff.abs() as u32;
     }
@@ -183,8 +198,9 @@ fn main() {
 
     let mut corrected_last_value_prediction: Vec<u32> = Vec::new();
     let mut pred = 0u32;
-    let mut method = DeltaToPowerOf2::new();
+    let mut method = PreviousError::new();
 
+    info!(",index,uncorrected,pred,truth,m_overshot,m_offset,_");
     for (i, value) in data.iter().enumerate() {
         let uncorrected = pred;
         pred = method.apply_correction(&pred);
@@ -202,6 +218,7 @@ fn main() {
         } else {
             debug!("             Improvement: {:02}", after - before);
         }
+        info!(",{},{},{},{},{},{},{}", i, uncorrected, pred, value, method.overshot, method.offset, "");
         corrected_last_value_prediction.push(pred);
         method.calculate_offset(value, &pred);
         pred = *value;
