@@ -1,8 +1,3 @@
-#![allow(unused_imports)]
-/// This could be done if the data being used
-/// by the correction methods are separated into an own struct and the correction
-/// methods are operating on this object (accessing the same attributes).
-
 /// # Application of bias / correction on predictions
 ///
 /// ## Experiment: Run 1
@@ -43,6 +38,32 @@ pub trait CorrectionContextTrait {
     fn apply_correction(&mut self, num: &u32, ctx: &mut Context) -> u32;
 }
 
+/// # PreviousError correction
+///
+/// ## tl;dr
+/// Correction of the prediction by adding the previous error by parts
+/// based on the error of the previous run.
+///
+/// ## Description
+/// The previous error is added to the current one with certain parts.
+///
+/// $ corr_t = corr_{t-1} * beta\parts $
+/// $ fpred_t = pred_t + F * corr_t
+/// with F = if pred_{t-1} < truth_{t-1} -1 else +1 $
+///
+/// # DeltaToPowerOf2
+///
+/// ## tl;dr
+/// Correction of the prediction using the delta difference to the previous
+/// or next power of 2.
+///
+/// ## Description
+/// The prediction will be brought closer to the next/former power of two. Has
+/// the prediction overshot the last time such that a bit flip occurred, the
+/// amount of will be subtracted (gaining a bit for LZC) and further decreased
+/// by beta/parts. The same is true for the other direction in case of a
+/// shortcoming of the prediction.
+///
 pub enum Correction {
     PreviousError,
     DeltaToPowerOf2,
@@ -93,164 +114,6 @@ impl CorrectionContextTrait for Correction {
     }
 }
 
-
-/// Original implementation of the correction algorithms as structs.
-/// For better usage and testing these elements needs to be implemented
-/// as enum types.
-///
-/// These types will then be used for later.
-///
-///
-pub trait CorrectionTrait {
-    fn calculate_offset(&mut self, truth: &u32, pred: &u32);
-    fn apply_correction(&mut self, pred: &u32) -> u32;
-}
-
-/// PreviousError correction
-///
-/// ## tl;dr
-/// Correction of the prediction by adding the previous error by parts
-/// based on the error of the previous run.
-///
-/// ## Description
-/// The previous error is added to the current one with certain parts.
-///
-/// $ corr_t = corr_{t-1} * beta\parts $
-/// $ fpred_t = pred_t + F * corr_t
-/// with F = if pred_{t-1} < truth_{t-1} -1 else +1 $
-///
-#[derive(Debug)]
-pub struct PreviousError {
-    overshot: bool,
-    offset: u32,
-    beta: u32,  // relative of parts
-    parts: u32, // absolute parts [default: 100]
-}
-
-impl PreviousError {
-    pub fn new() -> Self {
-        PreviousError {
-            overshot: false,
-            offset: 0,
-            beta: 1,
-            parts: 1,
-        }
-    }
-    pub fn update_beta(&mut self, val: u32) {
-        self.beta = val.min(self.parts)
-    }
-    pub fn get_parts(&self) -> u32 {
-        self.parts
-    }
-}
-
-impl CorrectionTrait for PreviousError {
-    fn calculate_offset(&mut self, truth: &u32, pred: &u32) {
-        let diff = *truth as i64 - *pred as i64 + self.offset as i64;
-
-        // TODO: Works as 'release', but gets over/underflow if used in 'debug'
-        self.overshot = diff < 0;
-        self.offset = diff.abs() as u32;
-    }
-    fn apply_correction(&mut self, pred: &u32) -> u32 {
-        let correction = (self.offset * self.beta) / self.parts;
-        if self.overshot {
-            if correction > *pred {
-                self.offset = 0;
-                return 0;
-            } else {
-                return pred - correction;
-            }
-        } else {
-            pred + correction
-        }
-    }
-}
-
-use std::fmt;
-impl fmt::Display for PreviousError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "PreviousError {{ overshot: {}, offset: {:b} }}",
-            self.overshot, self.offset
-        )
-    }
-}
-
-/// DeltaToPowerOf2
-///
-/// ## tl;dr
-/// Correction of the prediction using the delta difference to the previous
-/// or next power of 2.
-///
-/// ## Description
-/// The prediction will be brought closer to the next/former power of two. Has
-/// the prediction overshot the last time such that a bit flip occurred, the
-/// amount of will be subtracted (gaining a bit for LZC) and further decreased
-/// by beta/parts. The same is true for the other direction in case of a
-/// shortcoming of the prediction.
-///
-#[derive(Debug)]
-pub struct DeltaToPowerOf2 {
-    overshot: bool,
-    restricted: u32,
-    beta: u32,
-    parts: u32,
-    delta: u32,
-}
-
-impl fmt::Display for DeltaToPowerOf2 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "DeltaToPowerOf2 {{ overshot: {}, restricted: {}, delta: {} }}",
-            self.overshot, self.restricted, self.delta
-        )
-    }
-}
-
-impl DeltaToPowerOf2 {
-    pub fn new() -> Self {
-        DeltaToPowerOf2 {
-            overshot: false,
-            restricted: 0,
-            beta: 1,
-            parts: 3,
-            delta: 0,
-        }
-    }
-    pub fn update_beta(&mut self, val: u32) {
-        self.beta = val
-    }
-    pub fn get_parts(&self) -> u32 {
-        self.parts
-    }
-}
-
-impl CorrectionTrait for DeltaToPowerOf2 {
-    fn calculate_offset(&mut self, truth: &u32, pred: &u32) {
-        self.restricted = (truth ^ pred).leading_zeros();
-        self.overshot = pred > truth;
-    }
-    #[allow(unused_assignments)]
-    fn apply_correction(&mut self, pred: &u32) -> u32 {
-        if self.restricted < 10 {
-            warn!("Restricted < 10 {}", self.restricted);
-            return *pred;
-        }
-        let mut result = 0u32;
-        if self.overshot {
-            let delta = delta_to_former_power_of_two(*pred, self.restricted);
-            result = pred - (delta * self.beta) / self.parts;
-        } else {
-            let delta = delta_to_next_power_of_two(*pred, self.restricted);
-            result = pred + (delta * self.beta) / self.parts;
-        }
-        result
-    }
-}
-
 fn delta_to_next_power_of_two(val: u32, pos: u32) -> u32 {
     let pos = if pos > 0 { pos - 1 } else { 0 };
     let val = val << pos >> pos;
@@ -263,13 +126,11 @@ fn delta_to_former_power_of_two(val: u32, pos: u32) -> u32 {
     val - (val.next_power_of_two() >> 1)
 }
 
+#[allow(unused_variables, unused_imports)]
+fn main() {
 use log::{debug, error, info, trace, warn};
 use pzip::testing::{FileToBeCompressed, Source};
-#[allow(unused_variables)]
 use std::env::args;
-
-
-fn main() {
 
     // Setup of environment
     env_logger::init();
@@ -292,13 +153,16 @@ fn main() {
     // Get results of corrected last value prediction
     let mut corrected_last_value_prediction: Vec<u32> = Vec::new();
     let mut pred = 0u32;
-    let mut ctx = Context::new(1, 1);
+    let mut ctx = Context::new(1, 3);
+
+    // Decision about method
+    let mut method = Correction::DeltaToPowerOf2;
 
     // Calculate correction and iterate the vector
     info!(",index,uncorrected,pred,truth,m_overshot,m_offset,_");
     for (i, value) in data.iter().enumerate() {
         let uncorrected = pred;
-        pred = Correction::PreviousError.apply_correction(&pred, &mut ctx);
+        pred = method.apply_correction(&pred, &mut ctx);
         debug!("IX: {:08} Uncorrected: {:032b}", i, uncorrected);
         debug!("IX: {:08}   Corrected: {:032b} by {:?}", i, pred, ctx);
         debug!("IX: {:08}       Truth: {:032b}", i, value);
@@ -316,7 +180,7 @@ fn main() {
         info!(",{},{},{},{},{},{},{}", i, uncorrected, pred, value, ctx.overshot, ctx.offset, "");
         corrected_last_value_prediction.push(pred);
         ctx.prediction = pred; ctx.truth = *value;
-        Correction::PreviousError.update(&mut ctx);
+        method.update(&mut ctx);
         pred = *value;
     }
 
@@ -383,7 +247,4 @@ fn main() {
         worse,
         worse as f32 / data.len() as f32 * 100.0
     );
-    // info!("{:?}\t data", data);
-    // info!("{:?}\t pred", uncorrected_last_value_prediction);
-    // info!("{:?}\t corr pred", corrected_last_value_prediction);
 }
