@@ -1,7 +1,8 @@
 const ONE_ZERO_U32: u32 = 2863311530;
 const ZERO_ONE_U32: u32 = 1431655765;
-const ONE_ZERO_U64: u64 = 12297829382473034410;
-const ZERO_ONE_U64: u64 = 6148914691236517205;
+// TODO: Current implmentation only supports u32 values. Add to this u64.
+// const ONE_ZERO_U64: u64 = 12297829382473034410;
+// const ZERO_ONE_U64: u64 = 6148914691236517205;
 
 #[derive(Debug)]
 pub struct RContext {
