@@ -14,6 +14,7 @@
 /// ### Cause: The restricted area should consider number of 1s/0s in prediction
 ///
 
+#[derive(Debug)]
 pub struct Context {
     overshot: bool,
     beta: u32,  // relative of parts
@@ -291,15 +292,15 @@ fn main() {
     // Get results of corrected last value prediction
     let mut corrected_last_value_prediction: Vec<u32> = Vec::new();
     let mut pred = 0u32;
-    let mut method = PreviousError::new();
+    let mut ctx = Context::new(1, 1);
 
     // Calculate correction and iterate the vector
     info!(",index,uncorrected,pred,truth,m_overshot,m_offset,_");
     for (i, value) in data.iter().enumerate() {
         let uncorrected = pred;
-        pred = method.apply_correction(&pred);
+        pred = Correction::PreviousError.apply_correction(&pred, &mut ctx);
         debug!("IX: {:08} Uncorrected: {:032b}", i, uncorrected);
-        debug!("IX: {:08}   Corrected: {:032b} by {}", i, pred, method);
+        debug!("IX: {:08}   Corrected: {:032b} by {:?}", i, pred, ctx);
         debug!("IX: {:08}       Truth: {:032b}", i, value);
         let (before, after) = (
             (uncorrected ^ value).leading_zeros(),
@@ -312,9 +313,10 @@ fn main() {
         } else {
             debug!("             Improvement: {:02}", after - before);
         }
-        info!(",{},{},{},{},{},{},{}", i, uncorrected, pred, value, method.overshot, method.offset, "");
+        info!(",{},{},{},{},{},{},{}", i, uncorrected, pred, value, ctx.overshot, ctx.offset, "");
         corrected_last_value_prediction.push(pred);
-        method.calculate_offset(value, &pred);
+        ctx.prediction = pred; ctx.truth = *value;
+        Correction::PreviousError.update(&mut ctx);
         pred = *value;
     }
 
@@ -346,7 +348,7 @@ fn main() {
     let worse = data.len() as u32 - same - better;
 
     let sum_bits = data.len() * 32;
-    info!("METD: {}", method);
+    info!("METD: {:?}", ctx);
     info!("FILE: {}", filename);
     info!("====");
     info!("TOTL: {}", sum_bits);
