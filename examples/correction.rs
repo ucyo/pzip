@@ -1,5 +1,4 @@
 #![allow(unused_imports)]
-/// TODO: Transform into an ENUM.
 /// This could be done if the data being used
 /// by the correction methods are separated into an own struct and the correction
 /// methods are operating on this object (accessing the same attributes).
@@ -17,20 +16,30 @@
 
 pub struct Context {
     overshot: bool,
-    offset: u32,
     beta: u32,  // relative of parts
     parts: u32, // absolute parts
+
+    // Data for PreviousError method
+    offset: u32,
+    truth: u32,      // last truth value
+    prediction: u32, // last prediction value
+
+    // Data for DeltaToPowerOf2 method
+    restricted: u32,
 }
 
 impl Context {
-    pub fn new() -> Self {
-        Context { overshot: false, offset: 0, beta: 1, parts: 1 }
+    pub fn new(beta: u32, parts: u32) -> Self {
+        Context { overshot: false, beta: beta, parts: parts,
+                  truth: 0, prediction: 0, offset: 0,
+                  restricted: 0,
+        }
     }
 }
 
 pub trait CorrectionContextTrait {
     fn update(&self, ctx: &mut Context);
-    fn apply_correction(&mut self, num: &u32) -> u32;
+    fn apply_correction(&mut self, num: &u32, ctx: &mut Context) -> u32;
 }
 
 pub enum Correction {
@@ -42,20 +51,42 @@ impl CorrectionContextTrait for Correction {
     fn update(&self, ctx: &mut Context){
         match self {
             Correction::PreviousError => {
-                unimplemented!()
+                let diff = ctx.truth as i64 - ctx.prediction as i64 + ctx.offset as i64;
+                ctx.overshot = diff < 0;
+                ctx.offset = diff.abs() as u32;
             }
             Correction::DeltaToPowerOf2 => {
-                unimplemented!()
+                ctx.restricted = (ctx.truth ^ ctx.prediction).leading_zeros();
+                ctx.overshot = ctx.prediction > ctx.truth;
             }
         }
     }
-    fn apply_correction(&mut self, num: &u32) -> u32 {
+    fn apply_correction(&mut self, num: &u32, ctx: &mut Context) -> u32 {
         match self {
             Correction::PreviousError => {
-                unimplemented!()
+                let correction = (ctx.offset * ctx.beta) / ctx.parts;
+                if ctx.overshot {
+                    if correction > *num {
+                        ctx.offset = 0;
+                        return 0;
+                    } else {
+                        return num - correction;
+                    }
+                } else {
+                    return num + correction;
+                }
             }
             Correction::DeltaToPowerOf2 => {
-                unimplemented!()
+                if ctx.restricted < 10 {
+                    return *num;
+                }
+                if ctx.overshot {
+                    let delta = delta_to_former_power_of_two(*num, ctx.restricted);
+                    return num - (delta * ctx.beta) / ctx.parts;
+                } else {
+                    let delta = delta_to_next_power_of_two(*num, ctx.restricted);
+                    return num + (delta * ctx.beta) / ctx.parts;
+                }
             }
         }
     }
@@ -238,24 +269,31 @@ use std::env::args;
 
 
 fn main() {
+
+    // Setup of environment
     env_logger::init();
     let arguments: Vec<_> = args().collect();
     let filename = &arguments[1];
     let mut source: Source<f32> = Source::new(filename);
     source.load().unwrap();
+
+    // Subsetting of data
     let data: Vec<u32> = source.data.iter().map(|x| x.to_bits()).collect();
     let (start, size) = (30356, 1000);
-    let data = data[start..start + size].to_vec();
-    // let data: Vec<u32> = vec![4,5,6,8,10,9,0];
+    let data = data[start..start + size].to_vec(); // let data: Vec<u32> = vec![4,5,6,8,10,9,0];
+
+    // Get results of uncorrected last value prediction
     let mut uncorrected_last_value_prediction = vec![0u32; data.len()];
     for v in 1..data.len() {
         uncorrected_last_value_prediction[v] = data[v - 1];
     }
 
+    // Get results of corrected last value prediction
     let mut corrected_last_value_prediction: Vec<u32> = Vec::new();
     let mut pred = 0u32;
     let mut method = PreviousError::new();
 
+    // Calculate correction and iterate the vector
     info!(",index,uncorrected,pred,truth,m_overshot,m_offset,_");
     for (i, value) in data.iter().enumerate() {
         let uncorrected = pred;
@@ -280,6 +318,7 @@ fn main() {
         pred = *value;
     }
 
+    // Analysis
     let lzc_data: u32 = data.iter().map(|x| x.leading_zeros()).sum();
     let lzc_uncorrected_pred: Vec<u32> = data
         .iter()
