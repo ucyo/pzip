@@ -290,8 +290,8 @@ pub fn neighbours<'a, T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul + 
 
 #[allow(unused_variables, dead_code)]
 mod tests {
-    use super::*;
     use super::super::gen::GeneratorIteratorAdapter;
+    use super::*;
     #[test]
     fn test_fetch() {
         let data = vec![
@@ -303,7 +303,9 @@ mod tests {
         let mut weights: Vec<Position> = Vec::new();
         weights.push(Position { x: 0, y: 1, z: 1 });
 
-        let results: Vec<f64> = GeneratorIteratorAdapter(neighbours(tr, &data, &weights)).map(|x|x[0]).collect();
+        let results: Vec<f64> = GeneratorIteratorAdapter(neighbours(tr, &data, &weights))
+            .map(|x| x[0])
+            .collect();
 
         assert_eq!(results[20], 0f64);
         assert_eq!(results[17], 5f64);
@@ -340,17 +342,8 @@ mod tests {
     // #[ignore]
     fn extended_fetch_test_for_traversal() {
         let data = vec![
-            0.0, 1.0, 2.0,
-            3.0, 4.0, 5.0,
-            6.0, 7.0, 8.0,
-
-            9.0, 10.0, 11.0,
-            12.0, 13.0, 14.0,
-            15.0, 16.0, 17.0,
-
-            18.0, 19.0, 20.0,
-            21.0, 22.0, 23.0,
-            24.0, 25.0, 26.0,
+            0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0,
+            16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0,
         ];
 
         {
@@ -358,7 +351,8 @@ mod tests {
             let mut weights: Vec<Position> = Vec::new();
             weights.push(Position { x: 1, y: 0, z: 2 });
 
-            let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(neighbours(tr, &data, &weights)).collect();
+            let result: Vec<Vec<f64>> =
+                GeneratorIteratorAdapter(neighbours(tr, &data, &weights)).collect();
             assert_eq!(result[20], vec![1f64]);
             assert_eq!(result[17], vec![0f64]);
             assert_eq!(result[26], vec![7f64]);
@@ -374,12 +368,13 @@ mod tests {
             assert_eq!(result[22], vec![3f64]);
         }
 
-        {   let tr = Traversal::new(3, 3, 3);
+        {
+            let tr = Traversal::new(3, 3, 3);
             let mut weights: Vec<Position> = Vec::new();
             weights.push(Position { x: 1, y: 2, z: 0 });
 
-
-            let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(neighbours(tr, &data, &weights)).collect();
+            let result: Vec<Vec<f64>> =
+                GeneratorIteratorAdapter(neighbours(tr, &data, &weights)).collect();
             assert_eq!(result[19], vec![0f64]);
             assert_eq!(result[20], vec![0f64]);
             assert_eq!(result[17], vec![10f64]);
@@ -393,19 +388,21 @@ mod tests {
             assert_eq!(result[16], vec![9f64]);
         }
 
-        {   let tr = Traversal::new(3, 3, 3);
+        {
+            let tr = Traversal::new(3, 3, 3);
             let mut weights: Vec<(Position)> = Vec::new();
             weights.push(Position { x: 3, y: 3, z: 0 });
 
-            let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(neighbours(tr, &data, &weights)).collect();
+            let result: Vec<Vec<f64>> =
+                GeneratorIteratorAdapter(neighbours(tr, &data, &weights)).collect();
             assert_eq!(result[19], vec![0f64]);
             assert_eq!(result[20], vec![0f64]);
             assert_eq!(result[17], vec![0f64]);
             assert_eq!(result[26], vec![0f64]);
             assert_eq!(result[18], vec![0f64]);
-            assert_eq!(result[9], vec![ 0f64]);
+            assert_eq!(result[9], vec![0f64]);
             assert_eq!(result[13], vec![0f64]);
-            assert_eq!(result[5], vec![ 0f64]);
+            assert_eq!(result[5], vec![0f64]);
             assert_eq!(result[25], vec![0f64]);
             assert_eq!(result[18], vec![0f64]);
             assert_eq!(result[16], vec![0f64]);
@@ -416,7 +413,8 @@ mod tests {
             let mut weights: Vec<Position> = Vec::new();
             weights.push(Position { x: 2, y: 1, z: 1 });
 
-            let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(neighbours(tr, &data, &weights)).collect();
+            let result: Vec<Vec<f64>> =
+                GeneratorIteratorAdapter(neighbours(tr, &data, &weights)).collect();
             assert_eq!(result[24], vec![0f64]);
             assert_eq!(result[26], vec![18f64]);
         }
@@ -482,7 +480,6 @@ mod tests {
     //     {   let tr = Traversal::new(3, 3, 3);
     //         let mut weights: Vec<Position> = Vec::new();
     //         weights.push(Position { x: 0, y: -1, z: 1 });
-
 
     //         let result: Vec<Vec<f64>> = GeneratorIteratorAdapter(neighbours(tr, &data, &weights)).collect();
     //         assert_eq!(result[13], vec![7f64]);
@@ -632,7 +629,6 @@ mod tests {
     //         assert_eq!(result[17], vec![8.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 7.0]);
     //     }
     // }
-
 
     // #[test]
     // fn test_negative_distance_groups() {

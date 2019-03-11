@@ -2,18 +2,18 @@
 #![feature(uniform_paths)]
 
 pub mod config;
+pub mod gen;
 /// pzip - predicted zip
 ///
 /// # pzip
 /// A compression library for floating point data
 // pub mod mapping;
 pub mod position;
+pub mod predictors;
+pub mod ptraversal;
 pub mod testing;
 pub mod transform;
 pub mod traversal;
-pub mod ptraversal;
-pub mod predictors;
-pub mod gen;
 
 use position::Position;
 use testing::{FileToBeCompressed, Source};
@@ -51,7 +51,9 @@ impl Setup<f64> {
 
     pub fn write(&mut self, h: Inter, k: Intra, b: Byte, output: &String) {
         self.source.load().expect("Wrong loading");
-        let results = self.predictor.consume(&self.source.data, &self.shape, false);
+        let results = self
+            .predictor
+            .consume(&self.source.data, &self.shape, false);
         let diff: Vec<u64> = results
             .iter()
             .map(|a| h.to_u64(*a))

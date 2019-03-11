@@ -1,13 +1,12 @@
 #![allow(deprecated, dead_code)]
 use criterion::{criterion_group, criterion_main, Criterion, Fun};
-use rand::distributions::{Standard};
+use rand::distributions::Standard;
 use rand::{thread_rng, Rng};
 
-
-use pzip::ptraversal::{single_neighbours_grouped_no_ring};
-use pzip::position::Position as Coordinate;
-use pzip::traversal::{neighbours as neighboursfn, Traversal};
 use pzip::gen::GeneratorIteratorAdapter;
+use pzip::position::Position as Coordinate;
+use pzip::ptraversal::single_neighbours_grouped_no_ring;
+use pzip::traversal::{neighbours as neighboursfn, Traversal};
 
 fn random_number_generator_f32(min: f32, max: f32, size: usize) -> Vec<f32> {
     let v: Vec<f32> = thread_rng().sample_iter(&Standard).take(size).collect();
@@ -27,13 +26,23 @@ fn prepare_data_f32(shape: &Coordinate) -> Vec<f32> {
 fn prepare_functions() -> Vec<Fun<(pzip::position::Position, Vec<pzip::position::Position>)>> {
     let neighbours_grouped_no_ring = Fun::new("PA Grouped NO ring", |b, (shape, neighbours)| {
         let data = prepare_data_f32(&shape);
-        b.iter(|| { let _: Vec<Vec<f32>> = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(&shape, &neighbours, &data)).collect(); ()});
+        b.iter(|| {
+            let _: Vec<Vec<f32>> = GeneratorIteratorAdapter(single_neighbours_grouped_no_ring(
+                &shape,
+                &neighbours,
+                &data,
+            ))
+            .collect();
+            ()
+        });
     });
     let former_implementation = Fun::new("Normal NO ring", |b, (shape, neighbours)| {
         let data = prepare_data_f32(&shape);
         b.iter(|| {
             let tr = Traversal::new(shape.x as usize, shape.y as usize, shape.z as usize);
-            let _: Vec<Vec<f32>> = GeneratorIteratorAdapter(neighboursfn(tr, &data, &neighbours)).collect(); ()
+            let _: Vec<Vec<f32>> =
+                GeneratorIteratorAdapter(neighboursfn(tr, &data, &neighbours)).collect();
+            ()
         });
     });
 
@@ -43,7 +52,11 @@ fn prepare_functions() -> Vec<Fun<(pzip::position::Position, Vec<pzip::position:
 //neighbourhood & size
 fn small_small_comparison(c: &mut Criterion) {
     let funcs = prepare_functions();
-    let shape = Coordinate{x:55, y:35, z:70};
+    let shape = Coordinate {
+        x: 55,
+        y: 35,
+        z: 70,
+    };
     let mut neihgbours: Vec<Coordinate> = Vec::new();
     neihgbours.push(Coordinate { x: 1, y: 0, z: 0 });
     c.bench_functions("1 Neighour/S 55x35x70 No Ring", funcs, (shape, neihgbours));
@@ -51,22 +64,42 @@ fn small_small_comparison(c: &mut Criterion) {
 
 fn small_medium_comparison(c: &mut Criterion) {
     let funcs = prepare_functions();
-    let shape = Coordinate{x:950, y:350, z:70};
+    let shape = Coordinate {
+        x: 950,
+        y: 350,
+        z: 70,
+    };
     let mut neihgbours: Vec<Coordinate> = Vec::new();
     neihgbours.push(Coordinate { x: 1, y: 0, z: 0 });
-    c.bench_functions("1 Neighour/S 950x350x70 No Ring", funcs, (shape, neihgbours));
+    c.bench_functions(
+        "1 Neighour/S 950x350x70 No Ring",
+        funcs,
+        (shape, neihgbours),
+    );
 }
 
 fn small_big_comparison(c: &mut Criterion) {
     let funcs = prepare_functions();
-    let shape = Coordinate{x:1250, y:550, z:300};
+    let shape = Coordinate {
+        x: 1250,
+        y: 550,
+        z: 300,
+    };
     let mut neihgbours: Vec<Coordinate> = Vec::new();
     neihgbours.push(Coordinate { x: 1, y: 0, z: 0 });
-    c.bench_functions("1 Neighour/S 1250x550x300 No Ring", funcs, (shape, neihgbours));
+    c.bench_functions(
+        "1 Neighour/S 1250x550x300 No Ring",
+        funcs,
+        (shape, neihgbours),
+    );
 }
 fn medium_small_comparison(c: &mut Criterion) {
     let funcs = prepare_functions();
-    let shape = Coordinate{x:55, y:35, z:70};
+    let shape = Coordinate {
+        x: 55,
+        y: 35,
+        z: 70,
+    };
     let mut neihgbours: Vec<Coordinate> = Vec::new();
     neihgbours.push(Coordinate { x: 1, y: 0, z: 0 });
     neihgbours.push(Coordinate { x: 1, y: 2, z: 0 });
@@ -75,32 +108,51 @@ fn medium_small_comparison(c: &mut Criterion) {
     c.bench_functions("4 Neighour/S 55x35x70 No Ring", funcs, (shape, neihgbours));
 }
 
-
 fn medium_medium_comparison(c: &mut Criterion) {
     let funcs = prepare_functions();
-    let shape = Coordinate{x:950, y:350, z:70};
+    let shape = Coordinate {
+        x: 950,
+        y: 350,
+        z: 70,
+    };
     let mut neihgbours: Vec<Coordinate> = Vec::new();
     neihgbours.push(Coordinate { x: 1, y: 0, z: 0 });
     neihgbours.push(Coordinate { x: 1, y: 2, z: 0 });
     neihgbours.push(Coordinate { x: 2, y: 5, z: 0 });
     neihgbours.push(Coordinate { x: 4, y: 2, z: 1 });
-    c.bench_functions("4 Neighour/S 950x350x70 No Ring", funcs, (shape, neihgbours));
+    c.bench_functions(
+        "4 Neighour/S 950x350x70 No Ring",
+        funcs,
+        (shape, neihgbours),
+    );
 }
 
 fn medium_big_comparison(c: &mut Criterion) {
     let funcs = prepare_functions();
-    let shape = Coordinate{x:1250, y:550, z:300};
+    let shape = Coordinate {
+        x: 1250,
+        y: 550,
+        z: 300,
+    };
     let mut neihgbours: Vec<Coordinate> = Vec::new();
     neihgbours.push(Coordinate { x: 1, y: 0, z: 0 });
     neihgbours.push(Coordinate { x: 1, y: 2, z: 0 });
     neihgbours.push(Coordinate { x: 2, y: 5, z: 0 });
     neihgbours.push(Coordinate { x: 4, y: 2, z: 1 });
-    c.bench_functions("4 Neighour/S 1250x550x300 No Ring", funcs, (shape, neihgbours));
+    c.bench_functions(
+        "4 Neighour/S 1250x550x300 No Ring",
+        funcs,
+        (shape, neihgbours),
+    );
 }
 
 fn big_small_comparison(c: &mut Criterion) {
     let funcs = prepare_functions();
-    let shape = Coordinate{x:55, y:35, z:70};
+    let shape = Coordinate {
+        x: 55,
+        y: 35,
+        z: 70,
+    };
     let mut neihgbours: Vec<Coordinate> = Vec::new();
     neihgbours.push(Coordinate { x: 1, y: 0, z: 0 });
     neihgbours.push(Coordinate { x: 1, y: 2, z: 0 });
@@ -114,7 +166,11 @@ fn big_small_comparison(c: &mut Criterion) {
 }
 fn big_medium_comparison(c: &mut Criterion) {
     let funcs = prepare_functions();
-    let shape = Coordinate{x:950, y:350, z:70};
+    let shape = Coordinate {
+        x: 950,
+        y: 350,
+        z: 70,
+    };
     let mut neihgbours: Vec<Coordinate> = Vec::new();
     neihgbours.push(Coordinate { x: 1, y: 0, z: 0 });
     neihgbours.push(Coordinate { x: 1, y: 2, z: 0 });
@@ -124,12 +180,20 @@ fn big_medium_comparison(c: &mut Criterion) {
     neihgbours.push(Coordinate { x: 6, y: 1, z: 2 });
     neihgbours.push(Coordinate { x: 2, y: 3, z: 0 });
     neihgbours.push(Coordinate { x: 4, y: 2, z: 1 });
-    c.bench_functions("8 Neighour/S 950x350x70 No Ring", funcs, (shape, neihgbours));
+    c.bench_functions(
+        "8 Neighour/S 950x350x70 No Ring",
+        funcs,
+        (shape, neihgbours),
+    );
 }
 
 fn big_big_comparison(c: &mut Criterion) {
     let funcs = prepare_functions();
-    let shape = Coordinate{x:1250, y:550, z:300};
+    let shape = Coordinate {
+        x: 1250,
+        y: 550,
+        z: 300,
+    };
     let mut neihgbours: Vec<Coordinate> = Vec::new();
     neihgbours.push(Coordinate { x: 1, y: 0, z: 0 });
     neihgbours.push(Coordinate { x: 1, y: 2, z: 0 });
@@ -139,7 +203,11 @@ fn big_big_comparison(c: &mut Criterion) {
     neihgbours.push(Coordinate { x: 6, y: 1, z: 2 });
     neihgbours.push(Coordinate { x: 2, y: 3, z: 0 });
     neihgbours.push(Coordinate { x: 4, y: 2, z: 1 });
-    c.bench_functions("8 Neighour/S 1250x550x300 No Ring", funcs, (shape, neihgbours));
+    c.bench_functions(
+        "8 Neighour/S 1250x550x300 No Ring",
+        funcs,
+        (shape, neihgbours),
+    );
 }
 
 criterion_group!(

@@ -1,9 +1,9 @@
 // use pzip::mapping::{Intermapping, Raw, Untouched};
 use pzip::position::Position as Coordinate;
+use pzip::predictors::predictors;
 use pzip::transform::InterMapping;
 use pzip::transform::{Byte, Compact, Inter, Intra};
-use pzip::{Setup};
-use pzip::predictors::predictors;
+use pzip::Setup;
 
 #[test]
 #[ignore]

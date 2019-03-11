@@ -26,9 +26,14 @@ pub struct Context {
 
 impl Context {
     pub fn new(beta: u32, parts: u32) -> Self {
-        Context { overshot: false, beta: beta, parts: parts,
-                  truth: 0, prediction: 0, offset: 0,
-                  restricted: 0,
+        Context {
+            overshot: false,
+            beta: beta,
+            parts: parts,
+            truth: 0,
+            prediction: 0,
+            offset: 0,
+            restricted: 0,
         }
     }
 }
@@ -70,7 +75,7 @@ pub enum Correction {
 }
 
 impl CorrectionContextTrait for Correction {
-    fn update(&self, ctx: &mut Context){
+    fn update(&self, ctx: &mut Context) {
         match self {
             Correction::PreviousError => {
                 let diff = ctx.truth as i64 - ctx.prediction as i64 + ctx.offset as i64;
@@ -92,10 +97,10 @@ impl CorrectionContextTrait for Correction {
                         ctx.offset = 0;
                         return 0;
                     } else {
-                        return num - correction;
+                        return *num - correction;
                     }
                 } else {
-                    return num + correction;
+                    return *num + correction;
                 }
             }
             Correction::DeltaToPowerOf2 => {
@@ -104,10 +109,10 @@ impl CorrectionContextTrait for Correction {
                 }
                 if ctx.overshot {
                     let delta = delta_to_former_power_of_two(*num, ctx.restricted);
-                    return num - (delta * ctx.beta) / ctx.parts;
+                    return *num - (delta * ctx.beta) / ctx.parts;
                 } else {
                     let delta = delta_to_next_power_of_two(*num, ctx.restricted);
-                    return num + (delta * ctx.beta) / ctx.parts;
+                    return *num + (delta * ctx.beta) / ctx.parts;
                 }
             }
         }
@@ -128,9 +133,9 @@ fn delta_to_former_power_of_two(val: u32, pos: u32) -> u32 {
 
 #[allow(unused_variables, unused_imports)]
 fn main() {
-use log::{debug, error, info, trace, warn};
-use pzip::testing::{FileToBeCompressed, Source};
-use std::env::args;
+    use log::{debug, error, info, trace, warn};
+    use pzip::testing::{FileToBeCompressed, Source};
+    use std::env::args;
 
     // Setup of environment
     env_logger::init();
@@ -177,9 +182,13 @@ use std::env::args;
         } else {
             debug!("             Improvement: {:02}", after - before);
         }
-        info!(",{},{},{},{},{},{},{}", i, uncorrected, pred, value, ctx.overshot, ctx.offset, "");
+        info!(
+            ",{},{},{},{},{},{},{}",
+            i, uncorrected, pred, value, ctx.overshot, ctx.offset, ""
+        );
         corrected_last_value_prediction.push(pred);
-        ctx.prediction = pred; ctx.truth = *value;
+        ctx.prediction = pred;
+        ctx.truth = *value;
         method.update(&mut ctx);
         pred = *value;
     }
