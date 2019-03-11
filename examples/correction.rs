@@ -15,6 +15,60 @@
 /// ### Cause: The restricted area should consider number of 1s/0s in prediction
 ///
 
+pub struct Context {
+    overshot: bool,
+    offset: u32,
+    beta: u32,  // relative of parts
+    parts: u32, // absolute parts
+}
+
+impl Context {
+    pub fn new() -> Self {
+        Context { overshot: false, offset: 0, beta: 1, parts: 1 }
+    }
+}
+
+pub trait CorrectionContextTrait {
+    fn update(&self, ctx: &mut Context);
+    fn apply_correction(&mut self, num: &u32) -> u32;
+}
+
+pub enum Correction {
+    PreviousError,
+    DeltaToPowerOf2,
+}
+
+impl CorrectionContextTrait for Correction {
+    fn update(&self, ctx: &mut Context){
+        match self {
+            Correction::PreviousError => {
+                unimplemented!()
+            }
+            Correction::DeltaToPowerOf2 => {
+                unimplemented!()
+            }
+        }
+    }
+    fn apply_correction(&mut self, num: &u32) -> u32 {
+        match self {
+            Correction::PreviousError => {
+                unimplemented!()
+            }
+            Correction::DeltaToPowerOf2 => {
+                unimplemented!()
+            }
+        }
+    }
+}
+
+
+/// Original implementation of the correction algorithms as structs.
+/// For better usage and testing these elements needs to be implemented
+/// as enum types.
+///
+/// These types will then be used for later.
+///
+///
 pub trait CorrectionTrait {
     fn calculate_offset(&mut self, truth: &u32, pred: &u32);
     fn apply_correction(&mut self, pred: &u32) -> u32;
@@ -181,6 +235,8 @@ use log::{debug, error, info, trace, warn};
 use pzip::testing::{FileToBeCompressed, Source};
 #[allow(unused_variables)]
 use std::env::args;
+
+
 fn main() {
     env_logger::init();
     let arguments: Vec<_> = args().collect();
