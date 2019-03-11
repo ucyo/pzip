@@ -58,11 +58,13 @@ fn shift_calculation(num: u32, cut: u32) -> (bool, u32) {
     if last_value == 1 {
         let delta = ZERO_ONE_U32 >> (bits - cut);
         let goal = base + delta;
-        return (false, num - goal);
+        let shift = num.max(goal) - num.min(goal);
+        return (false, shift);
     } else {
         let delta = ONE_ZERO_U32 >> (bits - cut);
         let goal = base + delta;
-        return (true, goal - num);
+        let shift = num.max(goal) - num.min(goal);
+        return (true, shift);
     }
 }
 
@@ -74,28 +76,28 @@ fn apply_shift(num: u32, sign: &bool, delta: &u32) -> u32 {
     }
 }
 
-use rand;
-use rand::Rng;
 
-fn main() {
-    let mut rng = rand::thread_rng();
-    let pred: u32 = rng.gen();
-    let truth: u32 = rng.gen();
-    let mut rctx = RContext::new(20);
-    let xor = ResidualCalculation::ExclusiveOR.residual(&truth, &pred, &mut rctx);
-    let xor_rev = ResidualCalculation::ExclusiveOR.truth(&xor, &pred, &mut rctx);
-    println!("ExclusiveOR");
-    println!("{:032b} {:032b}", pred, truth);
-    println!("{:032b} {:032b} {}", xor, xor_rev, xor_rev == truth);
+#[allow(unused_imports)]
+mod tests {
+    use rand::{thread_rng, Rng};
+    use super::*;
 
-    let shifted_xor = ResidualCalculation::Shifted.residual(&truth, &pred, &mut rctx);
-    let shifted_xor_rev = ResidualCalculation::Shifted.truth(&shifted_xor, &pred, &mut rctx);
-    println!("Shifted");
-    println!("{:032b} {:032b}", pred, truth);
-    println!(
-        "{:032b} {:032b} {}",
-        shifted_xor,
-        shifted_xor_rev,
-        shifted_xor_rev == truth
-    );
+    #[test]
+    fn test_circular_structure() {
+        let mut rctx = RContext::new(20);
+
+        for _ in 0..1000 {
+            let mut rng = thread_rng();
+            let pred: u32 = rng.gen();
+            let truth: u32 = rng.gen();
+            let xor = ResidualCalculation::ExclusiveOR.residual(&truth, &pred, &mut rctx);
+            let xor_rev = ResidualCalculation::ExclusiveOR.truth(&xor, &pred, &mut rctx);
+            let shifted_xor = ResidualCalculation::Shifted.residual(&truth, &pred, &mut rctx);
+            let shifted_xor_rev = ResidualCalculation::Shifted.truth(&shifted_xor, &pred, &mut rctx);
+
+            assert_eq!(xor_rev, truth);
+            assert_eq!(shifted_xor_rev, truth);
+        }
+
+    }
 }
