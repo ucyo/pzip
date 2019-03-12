@@ -26,6 +26,7 @@ pub trait ResidualTrait {
 pub enum ResidualCalculation {
     ExclusiveOR,
     Shifted,
+    ShiftedLZC,
 }
 
 impl ResidualTrait for ResidualCalculation {
@@ -33,6 +34,12 @@ impl ResidualTrait for ResidualCalculation {
         match self {
             ResidualCalculation::ExclusiveOR => *truth ^ *prediction,
             ResidualCalculation::Shifted => {
+                let (add, shift) = shift_calculation(*prediction, rctx);
+                let shifted_prediction = apply_shift(*prediction, &add, &shift);
+                let shifted_truth = apply_shift(*truth, &add, &shift);
+                shifted_prediction ^ shifted_truth
+            }
+            ResidualCalculation::ShiftedLZC => {
                 let (add, shift) = shift_calculation(*prediction, rctx);
                 let shifted_prediction = apply_shift(*prediction, &add, &shift);
                 let shifted_truth = apply_shift(*truth, &add, &shift);
@@ -50,12 +57,29 @@ impl ResidualTrait for ResidualCalculation {
                 let truth = apply_shift(shifted_truth, &!add, &shift);
                 truth
             }
+            ResidualCalculation::ShiftedLZC => {
+                let (add, shift) = shift_calculation(*prediction, rctx);
+                let shifted_prediction = apply_shift(*prediction, &add, &shift);
+                let shifted_truth = *residual ^ shifted_prediction;
+                let truth = apply_shift(shifted_truth, &!add, &shift);
+                truth
+            }
         }
     }
     fn update(&self, truth: &u32, prediction: &u32, rctx: &mut RContext) {
         match self {
-            ResidualCalculation::ExclusiveOR => {}
-            ResidualCalculation::Shifted => {}
+            ResidualCalculation::ExclusiveOR => {
+                rctx.prediction = *prediction;
+                rctx.truth = *truth;}
+            ResidualCalculation::Shifted => {
+                rctx.prediction = *prediction;
+                rctx.truth = *truth;}
+            ResidualCalculation::ShiftedLZC => {
+                rctx.prediction = *prediction;
+                rctx.truth = *truth;
+                let new_cut = 32 - (*truth ^ *prediction).leading_zeros();
+                rctx.cut = new_cut.max(4); //TODO: Test influence of minimal cut
+            }
         }
     }
 }
@@ -110,6 +134,7 @@ mod tests {
         }
 
     }
+
     #[test]
     fn test_shifted_random_small_delta() {
         let position = 20;
@@ -131,6 +156,7 @@ mod tests {
 
     }
     #[test]
+    #[ignore]
     fn test_overflow_danger_shifted() {
         let mut rctx = RContext::new(20);
 
@@ -144,6 +170,28 @@ mod tests {
         let shifted_xor_rev = ResidualCalculation::Shifted.truth(&shifted_xor, &pred, &mut rctx);
         ResidualCalculation::Shifted.update(&truth, &pred, &mut rctx);
         assert_eq!(shifted_xor_rev, truth);
+
+    }
+
+    #[test]
+    fn test_shifted_at_lzc_random_small_delta() {
+        let position = 20;
+        let mut rctx = RContext::new(position);
+
+        for _ in 0..1_000_000 {
+            let mut rng = thread_rng();
+            let pred: u32 = rng.gen();
+            let delta: u32 = rng.gen_range(0,100);
+            let sign: bool = rng.gen();
+            let truth = if sign {pred + delta} else {pred - delta};
+            println!("{:032b} {:032b} {:?}", pred, truth, rctx);
+            // debug!("{:032b} {:032b} {:?} {0} {1} {3}", pred, truth, rctx, u32::max_value());
+            let shifted_xor = ResidualCalculation::ShiftedLZC.residual(&truth, &pred, &mut rctx);
+            let shifted_xor_rev = ResidualCalculation::ShiftedLZC.truth(&shifted_xor, &pred, &mut rctx);
+            // debug!("{:032b} {:032b}", shifted_xor, shifted_xor_rev);
+            ResidualCalculation::ShiftedLZC.update(&truth, &pred, &mut rctx);
+            assert_eq!(shifted_xor_rev, truth);
+        }
 
     }
 }
