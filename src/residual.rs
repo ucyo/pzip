@@ -33,7 +33,7 @@ impl ResidualTrait for ResidualCalculation {
         match self {
             ResidualCalculation::ExclusiveOR => *truth ^ *prediction,
             ResidualCalculation::Shifted => {
-                let (add, shift) = shift_calculation(*prediction, rctx.cut);
+                let (add, shift) = shift_calculation(*prediction, rctx);
                 let shifted_prediction = apply_shift(*prediction, &add, &shift);
                 let shifted_truth = apply_shift(*truth, &add, &shift);
                 shifted_prediction ^ shifted_truth
@@ -44,7 +44,7 @@ impl ResidualTrait for ResidualCalculation {
         match self {
             ResidualCalculation::ExclusiveOR => *residual ^ *prediction,
             ResidualCalculation::Shifted => {
-                let (add, shift) = shift_calculation(*prediction, rctx.cut);
+                let (add, shift) = shift_calculation(*prediction, rctx);
                 let shifted_prediction = apply_shift(*prediction, &add, &shift);
                 let shifted_truth = *residual ^ shifted_prediction;
                 let truth = apply_shift(shifted_truth, &!add, &shift);
@@ -60,18 +60,19 @@ impl ResidualTrait for ResidualCalculation {
     }
 }
 
-fn shift_calculation(num: u32, cut: u32) -> (bool, u32) {
+fn shift_calculation(num: u32, rctx: &mut RContext) -> (bool, u32) {
     let bits = 32;
-    let base = (num >> cut) << cut;
-    let last_value = (num >> cut) & 1;
+    // let max_value = u32::max_value();
+    let base = (num >> rctx.cut) << rctx.cut;
+    let last_value = (num >> rctx.cut) & 1;
     if last_value == 1 {
-        let delta = ZERO_ONE_U32 >> (bits - cut);
+        let delta = ZERO_ONE_U32 >> (bits - rctx.cut);
         let goal = base + delta;
         let shift = num.max(goal) - num.min(goal);
         //info!("Cutting {0} @ {1} shift {2} goal {3} f", num, cut, shift, goal);
         return (false, shift);
     } else {
-        let delta = ONE_ZERO_U32 >> (bits - cut);
+        let delta = ONE_ZERO_U32 >> (bits - rctx.cut);
         let goal = base + delta;
         let shift = num.max(goal) - num.min(goal);
         //info!("Cutting {0} @ {1} shift {2} goal {3} t", num, cut, shift, goal);
