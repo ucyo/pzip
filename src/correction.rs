@@ -76,6 +76,7 @@ pub trait CorrectionContextTrait {
 pub enum Correction {
     PreviousError,
     DeltaToPowerOf2,
+    Untouched,
 }
 
 impl CorrectionContextTrait for Correction {
@@ -90,9 +91,10 @@ impl CorrectionContextTrait for Correction {
                 ctx.restricted = (ctx.truth ^ ctx.prediction).leading_zeros();
                 ctx.overshot = ctx.prediction > ctx.truth;
             }
+            Correction::Untouched => {}
         }
     }
-    fn apply_correction(&mut self, num: &u32, ctx: &mut CContext) -> u32 {
+    fn apply_correction(&self, num: &u32, ctx: &mut CContext) -> u32 {
         match self {
             Correction::PreviousError => {
                 let correction = (ctx.offset * ctx.beta) / ctx.parts;
@@ -119,6 +121,7 @@ impl CorrectionContextTrait for Correction {
                     return *num + (delta * ctx.beta) / ctx.parts;
                 }
             }
+            Correction::Untouched => *num
         }
     }
 }
