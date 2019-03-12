@@ -235,7 +235,7 @@ mod tests {
 
     #[test]
     fn trait_write_f32_to_file() {
-        let filename = String::from("/tmp/output.raw");
+        let filename = String::from("/tmp/output1.raw");
         let v = 213.232_f32;
 
         let mut sink: Sink<f32> = Sink::new(&filename);
@@ -246,12 +246,12 @@ mod tests {
         let value = source.get();
 
         std::fs::remove_file(&filename).expect("Error");
-        assert_eq!(v, value)
+        assert_eq!(v, value);
     }
 
     #[test]
     fn trait_write_f32s_to_file() {
-        let filename = String::from("/tmp/output.raw");
+        let filename = String::from("/tmp/output2.raw");
         let values = [213.236_f32, 839.9482_f32, 94.32_f32];
 
         let mut sink: Sink<f32> = Sink::new(&filename);
@@ -295,7 +295,7 @@ mod tests {
 
     #[test]
     fn trait_write_f64_to_file() {
-        let filename = String::from("/tmp/output.raw");
+        let filename = String::from("/tmp/output3.raw");
         let v = 213.232_f64;
 
         let mut sink: Sink<f64> = Sink::new(&filename);
