@@ -68,16 +68,19 @@ fn shift_calculation(num: u32, cut: u32) -> (bool, u32) {
         let delta = ZERO_ONE_U32 >> (bits - cut);
         let goal = base + delta;
         let shift = num.max(goal) - num.min(goal);
+        //info!("Cutting {0} @ {1} shift {2} goal {3} f", num, cut, shift, goal);
         return (false, shift);
     } else {
         let delta = ONE_ZERO_U32 >> (bits - cut);
         let goal = base + delta;
         let shift = num.max(goal) - num.min(goal);
+        //info!("Cutting {0} @ {1} shift {2} goal {3} t", num, cut, shift, goal);
         return (true, shift);
     }
 }
 
 fn apply_shift(num: u32, sign: &bool, delta: &u32) -> u32 {
+    //info!("Applying {0} with {1} to {2}", *delta, sign, num);
     if *sign {
         return num + *delta;
     } else {
@@ -92,21 +95,54 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_circular_structure() {
+    fn test_exclusive_or() {
         let mut rctx = RContext::new(20);
 
-        for _ in 0..1000 {
+        for _ in 0..3_000_000 {
             let mut rng = thread_rng();
             let pred: u32 = rng.gen();
             let truth: u32 = rng.gen();
             let xor = ResidualCalculation::ExclusiveOR.residual(&truth, &pred, &mut rctx);
             let xor_rev = ResidualCalculation::ExclusiveOR.truth(&xor, &pred, &mut rctx);
+            ResidualCalculation::ExclusiveOR.update(&truth, &pred, &mut rctx);
+            assert_eq!(xor_rev, truth);
+        }
+
+    }
+    #[test]
+    fn test_shifted_random_small_delta() {
+        let position = 20;
+        let mut rctx = RContext::new(position);
+
+        for _ in 0..1_000_000 {
+            let mut rng = thread_rng();
+            let pred: u32 = rng.gen();
+            let delta: u32 = rng.gen_range(0,100);
+            let sign: bool = rng.gen();
+            let truth = if sign {pred + delta} else {pred - delta};
+            // debug!("{:032b} {:032b} {:?} {0} {1} {3}", pred, truth, rctx, u32::max_value());
             let shifted_xor = ResidualCalculation::Shifted.residual(&truth, &pred, &mut rctx);
             let shifted_xor_rev = ResidualCalculation::Shifted.truth(&shifted_xor, &pred, &mut rctx);
-
-            assert_eq!(xor_rev, truth);
+            // debug!("{:032b} {:032b}", shifted_xor, shifted_xor_rev);
+            ResidualCalculation::Shifted.update(&truth, &pred, &mut rctx);
             assert_eq!(shifted_xor_rev, truth);
         }
+
+    }
+    #[test]
+    fn test_overflow_danger_shifted() {
+        let mut rctx = RContext::new(20);
+
+        // TODO: Fix overflow error.
+        // This error occurs if the shift calculation does not take into account that
+        // the predicted value is way off. It could be prevented if we take into account
+        // the cut point (since this defines the size of the shift operation).
+        let pred: u32 = 2183263055;
+        let truth: u32 = 4294696180;
+        let shifted_xor = ResidualCalculation::Shifted.residual(&truth, &pred, &mut rctx);
+        let shifted_xor_rev = ResidualCalculation::Shifted.truth(&shifted_xor, &pred, &mut rctx);
+        ResidualCalculation::Shifted.update(&truth, &pred, &mut rctx);
+        assert_eq!(shifted_xor_rev, truth);
 
     }
 }
