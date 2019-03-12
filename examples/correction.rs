@@ -31,7 +31,7 @@ fn main() {
     let mut ctx = CContext::new(1, 3);
 
     // Decision about method
-    let mut method = Correction::DeltaToPowerOf2;
+    let method = Correction::DeltaToPowerOf2;
 
     // Calculate correction and iterate the vector
     info!(",index,uncorrected,pred,truth,m_overshot,m_offset,_");

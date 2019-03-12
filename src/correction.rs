@@ -43,7 +43,7 @@ impl CContext {
 
 pub trait CorrectionContextTrait {
     fn update(&self, ctx: &mut CContext);
-    fn apply_correction(&mut self, num: &u32, ctx: &mut CContext) -> u32;
+    fn apply_correction(&self, num: &u32, ctx: &mut CContext) -> u32;
 }
 
 
