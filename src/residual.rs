@@ -7,17 +7,20 @@ const ZERO_ONE_U32: u32 = 1431655765;
 #[derive(Debug)]
 pub struct RContext {
     cut: u32,
+    truth: u32,
+    prediction: u32,
 }
 
 impl RContext {
     pub fn new(cut: u32) -> Self {
-        RContext { cut: cut }
+        RContext { cut: cut , truth: 0, prediction: 0}
     }
 }
 
 pub trait ResidualTrait {
     fn residual(&self, truth: &u32, prediction: &u32, rctx: &mut RContext) -> u32;
     fn truth(&self, residual: &u32, prediction: &u32, rctx: &mut RContext) -> u32;
+    fn update(&self, truth: &u32, prediction: &u32, rctx: &mut RContext);
 }
 
 pub enum ResidualCalculation {
@@ -47,6 +50,12 @@ impl ResidualTrait for ResidualCalculation {
                 let truth = apply_shift(shifted_truth, &!add, &shift);
                 truth
             }
+        }
+    }
+    fn update(&self, truth: &u32, prediction: &u32, rctx: &mut RContext) {
+        match self {
+            ResidualCalculation::ExclusiveOR => {}
+            ResidualCalculation::Shifted => {}
         }
     }
 }

@@ -100,7 +100,7 @@ impl Setup<f32> {
             .zip(self.source.data.iter().map(|a| h.to_u32(*a)))
             .map(|(a,b)| (k.to_new_u32(a), k.to_new_u32(b)))
             .map(|(a,b)| (correction.apply_correction(&a, &mut cctx), correction.apply_correction(&b, &mut cctx)))
-            .map(|(a,b)| (r.residual(&a, &b, &mut rctx)))
+            .map(|(a,b)| { let result = r.residual(&a, &b, &mut rctx); r.update(&a, &b, &mut rctx); return result})
             .collect();
         let diff = c.compact_u32(diff);
         let mut tmp: Vec<u8> = Vec::new();
