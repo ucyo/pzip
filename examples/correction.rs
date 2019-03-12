@@ -1,4 +1,4 @@
-use pzip::correction::{Context, Correction, CorrectionContextTrait};
+use pzip::correction::{CContext, Correction, CorrectionContextTrait};
 
 
 #[allow(unused_variables, unused_imports)]
@@ -28,7 +28,7 @@ fn main() {
     // Get results of corrected last value prediction
     let mut corrected_last_value_prediction: Vec<u32> = Vec::new();
     let mut pred = 0u32;
-    let mut ctx = Context::new(1, 3);
+    let mut ctx = CContext::new(1, 3);
 
     // Decision about method
     let mut method = Correction::DeltaToPowerOf2;

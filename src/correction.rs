@@ -13,7 +13,7 @@
 /// methods.
 ///
 #[derive(Debug)]
-pub struct Context {
+pub struct CContext {
     pub overshot: bool,
     pub beta: u32,  // relative of parts
     pub parts: u32, // absolute parts
@@ -27,9 +27,9 @@ pub struct Context {
     pub restricted: u32,
 }
 
-impl Context {
+impl CContext {
     pub fn new(beta: u32, parts: u32) -> Self {
-        Context {
+        CContext {
             overshot: false,
             beta: beta,
             parts: parts,
@@ -42,8 +42,8 @@ impl Context {
 }
 
 pub trait CorrectionContextTrait {
-    fn update(&self, ctx: &mut Context);
-    fn apply_correction(&mut self, num: &u32, ctx: &mut Context) -> u32;
+    fn update(&self, ctx: &mut CContext);
+    fn apply_correction(&mut self, num: &u32, ctx: &mut CContext) -> u32;
 }
 
 
@@ -79,7 +79,7 @@ pub enum Correction {
 }
 
 impl CorrectionContextTrait for Correction {
-    fn update(&self, ctx: &mut Context) {
+    fn update(&self, ctx: &mut CContext) {
         match self {
             Correction::PreviousError => {
                 let diff = ctx.truth as i64 - ctx.prediction as i64 + ctx.offset as i64;
@@ -92,7 +92,7 @@ impl CorrectionContextTrait for Correction {
             }
         }
     }
-    fn apply_correction(&mut self, num: &u32, ctx: &mut Context) -> u32 {
+    fn apply_correction(&mut self, num: &u32, ctx: &mut CContext) -> u32 {
         match self {
             Correction::PreviousError => {
                 let correction = (ctx.offset * ctx.beta) / ctx.parts;
