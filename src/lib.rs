@@ -1,13 +1,13 @@
 #![feature(generators, generator_trait)]
 #![feature(uniform_paths)]
-
-pub mod config;
-pub mod gen;
 /// pzip - predicted zip
 ///
 /// # pzip
 /// A compression library for floating point data
 // pub mod mapping;
+
+pub mod config;
+pub mod gen;
 pub mod position;
 pub mod predictors;
 pub mod ptraversal;
@@ -21,6 +21,8 @@ use position::Position;
 use testing::{FileToBeCompressed, Source};
 use transform::{Byte, Compact, Inter, Intra};
 use transform::{ByteMapping, CompactMapping, InterMapping, IntraMapping};
+use correction::{CContext, Correction, CorrectionContextTrait};
+use residual::{RContext, ResidualCalculation, ResidualTrait};
 
 #[derive(Debug, PartialEq)]
 pub struct Shape {
@@ -87,14 +89,18 @@ impl Setup<f32> {
         }
     }
 
-    pub fn write(&mut self, h: Inter, k: Intra, b: Byte, c: Compact, ring: bool, output: &String) {
+    pub fn write(&mut self, h: Inter, k: Intra, b: Byte, c: Compact, r: ResidualCalculation, correction: Correction, ring: bool, cut:u32, parts: u32, output: &String) {
         self.source.load().expect("Wrong loading");
         let results = self.predictor.consume(&self.source.data, &self.shape, ring);
+        let mut rctx = RContext::new(cut);
+        let mut cctx = CContext::new(1, parts);
         let diff: Vec<u32> = results
             .iter()
             .map(|a| h.to_u32(*a))
             .zip(self.source.data.iter().map(|a| h.to_u32(*a)))
-            .map(|(a, b)| k.to_new_u32(a) ^ k.to_new_u32(b))
+            .map(|(a,b)| (k.to_new_u32(a), k.to_new_u32(b)))
+            .map(|(a,b)| (correction.apply_correction(&a, &mut cctx), correction.apply_correction(&b, &mut cctx)))
+            .map(|(a,b)| (r.residual(&a, &b, &mut rctx)))
             .collect();
         let diff = c.compact_u32(diff);
         let mut tmp: Vec<u8> = Vec::new();

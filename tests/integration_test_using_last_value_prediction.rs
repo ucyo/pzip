@@ -3,12 +3,14 @@ use pzip::position::Position as Coordinate;
 use pzip::predictors::predictors;
 use pzip::transform::InterMapping;
 use pzip::transform::{Byte, Compact, Inter, Intra};
+use pzip::correction::{Correction};
+use pzip::residual::{ResidualCalculation};
 use pzip::Setup;
 
 #[test]
 #[ignore]
 fn compression_using_last_value_all_once_f64_raw() {
-    let input = String::from("/home/ucyo/rust/pzip/data/icon.ml.qv.f64.little.4x90x351x901_0.raw");
+    let input = String::from("/home/ucyo/rust/pzip/data/icon.ml.qv.f32.little.4x90x351x901_0.raw");
     let output = String::from("/tmp/testing64.pzip");
     let shape = Coordinate {
         z: 90,
@@ -53,7 +55,9 @@ fn compression_using_last_value_all_once_f32_raw() {
         Intra::Untouched,
         Byte::Untouched,
         Compact::Untouched,
-        false,
+        ResidualCalculation::ExclusiveOR,
+        Correction::Untouched,
+        false, 20, 3,
         &output,
     );
 
