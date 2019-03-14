@@ -10,6 +10,7 @@ pub mod config;
 pub mod gen;
 pub mod position;
 pub mod predictors;
+pub mod prediction;
 pub mod ptraversal;
 pub mod testing;
 pub mod transform;
