@@ -23,6 +23,7 @@ pub trait ResidualTrait {
     fn update(&self, truth: &u32, prediction: &u32, rctx: &mut RContext);
 }
 
+#[derive(Debug)]
 pub enum ResidualCalculation {
     ExclusiveOR,
     Shifted,

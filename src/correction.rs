@@ -73,6 +73,7 @@ pub trait CorrectionContextTrait {
 /// by beta/parts. The same is true for the other direction in case of a
 /// shortcoming of the prediction.
 ///
+#[derive(Debug)]
 pub enum Correction {
     PreviousError,
     DeltaToPowerOf2,
@@ -115,10 +116,12 @@ impl CorrectionContextTrait for Correction {
                 }
                 if ctx.overshot {
                     let delta = delta_to_former_power_of_two(*num, ctx.restricted);
-                    return *num - (delta * ctx.beta) / ctx.parts;
+                    let result = *num - (delta * ctx.beta) / ctx.parts;
+                    return result
                 } else {
                     let delta = delta_to_next_power_of_two(*num, ctx.restricted);
-                    return *num + (delta * ctx.beta) / ctx.parts;
+                    let result = *num + (delta * ctx.beta) / ctx.parts;
+                    return result
                 }
             }
             Correction::Untouched => *num

@@ -29,21 +29,25 @@ pub trait ByteMapping {
     fn from_u8(&self, num: u8) -> u8;
 }
 
+#[derive(Debug)]
 pub enum Inter {
     Untouched,
     Ordered,
 }
 
+#[derive(Debug)]
 pub enum Intra {
     Untouched,
     Gray,
 }
 
+#[derive(Debug)]
 pub enum Byte {
     Untouched,
     MonoGray,
 }
 
+#[derive(Debug)]
 pub enum Compact {
     Untouched,
     NoLZC,
