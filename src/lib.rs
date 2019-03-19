@@ -13,6 +13,7 @@ pub mod predictors;
 pub mod prediction;
 pub mod ptraversal;
 pub mod testing;
+pub mod toolbelt;
 pub mod transform;
 pub mod traversal;
 pub mod residual;

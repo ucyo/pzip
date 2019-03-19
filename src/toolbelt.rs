@@ -1,13 +1,3 @@
-fn main() {
-    let data: Vec<u32> = vec![41, 213, 5, 234, 165];
-    // let tmp1 = to_bitplanes_for_u8(&data);
-    // let r1 = from_bitplanes_for_u8(&tmp1);
-    let tmp2 = to_bitplanes_irregular_u32(&data);
-    let r2 = from_bitplanes_irregular_u32(&tmp2.0, &tmp2.1, &tmp2.2);
-    for d in vec![data, tmp2.1, r2] {
-        println!("{:?}", d);
-    }
-}
 
 fn from_bitplanes_for_u8(data: &Vec<u8>) -> Vec<u8> {
     let mut results: Vec<u8> = vec![0; data.len()];
@@ -160,25 +150,35 @@ fn to_bitplanes_irregular_u32(data: &Vec<u32>) -> (Vec<i32>, Vec<u32>, u8) {
 }
 
 mod tests {
+    use super::*;
+
     #[test]
-    fn test_u8() {
+    fn test_irregular_u8() {
         let data: Vec<u8> = vec![41, 213, 5, 234, 165];
-        let val = to_bitplanes_unregular(data);
+        let val = to_bitplanes_irregular(&data);
         assert_eq!(val.0, vec![6, 8, 3, 8, 8]);
         assert_eq!(val.1, vec![250, 174, 133, 170, 128]);
-        assert_eq!(val.2, 1);
-        let result = from_bitplanes_irregular(val.0, val.1, val.2);
+        assert_eq!(val.2, 7);
+        let result = from_bitplanes_irregular(&val.0, &val.1, &val.2);
         assert_eq!(data, result);
     }
 
     #[test]
-    fn test_u32() {
+    fn test_regular_u8() {
+        let data: Vec<u8> = vec![41, 213, 5, 234, 165];
+        let val = to_bitplanes_for_u8(&data);
+        let result = from_bitplanes_for_u8(&val);
+        assert_eq!(data, result);
+    }
+
+    #[test]
+    fn test_irregular_u32() {
         let data: Vec<u32> = vec![41, 213, 5, 234, 165];
-        let val = to_bitplanes_irregular_u32(data);
+        let val = to_bitplanes_irregular_u32(&data);
         assert_eq!(val.0, vec![6, 8, 3, 8, 8]);
-        assert_eq!(val.1, vec![250, 174, 133, 170, 128]);
-        assert_eq!(val.2, 1);
-        let result = from_bitplanes_irregular_u32(val.0, val.1, val.2);
+        assert_eq!(val.1, vec![4205741482, 2147483648]);
+        assert_eq!(val.2, 31);
+        let result = from_bitplanes_irregular_u32(&val.0, &val.1, &val.2);
         assert_eq!(data, result);
     }
 }
