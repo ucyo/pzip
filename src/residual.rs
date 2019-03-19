@@ -185,7 +185,6 @@ mod tests {
             let delta: u32 = rng.gen_range(0,100);
             let sign: bool = rng.gen();
             let truth = if sign {pred + delta} else {pred - delta};
-            println!("{:032b} {:032b} {:?}", pred, truth, rctx);
             // debug!("{:032b} {:032b} {:?} {0} {1} {3}", pred, truth, rctx, u32::max_value());
             let shifted_xor = ResidualCalculation::ShiftedLZC.residual(&truth, &pred, &mut rctx);
             let shifted_xor_rev = ResidualCalculation::ShiftedLZC.truth(&shifted_xor, &pred, &mut rctx);
