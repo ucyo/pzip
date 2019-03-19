@@ -1,11 +1,12 @@
 fn main() {
-    let data: Vec<u8> = vec![41, 213, 5, 234, 165];
-    let tmp1 = to_bitplanes_for_u8(&data);
-    let r1 = from_bitplanes_for_u8(&tmp1);
-    let tmp2 = to_bitplanes_irregular(&data);
-    let r2 = from_bitplanes_irregular(&tmp2.0, &tmp2.1, &tmp2.2);
-    for d in vec![data, tmp1, r1, tmp2.1, r2]{
-    println!("{:?}", d);}
+    let data: Vec<u32> = vec![41, 213, 5, 234, 165];
+    // let tmp1 = to_bitplanes_for_u8(&data);
+    // let r1 = from_bitplanes_for_u8(&tmp1);
+    let tmp2 = to_bitplanes_irregular_u32(&data);
+    let r2 = from_bitplanes_irregular_u32(&tmp2.0, &tmp2.1, &tmp2.2);
+    for d in vec![data, tmp2.1, r2] {
+        println!("{:?}", d);
+    }
 }
 
 fn from_bitplanes_for_u8(data: &Vec<u8>) -> Vec<u8> {
@@ -100,15 +101,84 @@ fn to_bitplanes_irregular(data: &Vec<u8>) -> (Vec<i32>, Vec<u8>, u8) {
     return (sizes, results, push);
 }
 
+fn from_bitplanes_irregular_u32(sizes: &Vec<i32>, bits: &Vec<u32>, push: &u8) -> Vec<u32> {
+    let mut bitstream: Vec<bool> = vec![false; bits.len() * 32 as usize];
+    let mut bitstream_ix = 0;
+    for s in 0..bits.len() {
+        for pow in 0..32 {
+            bitstream[bitstream_ix] = bits[s] & (1 << (32 - pow - 1)) > 0;
+            bitstream_ix += 1;
+        }
+    }
+    for _ in 0..*push {
+        bitstream.pop();
+    }
+    let mut result: Vec<u32> = vec![0; sizes.len()];
+
+    let mut options = sizes.clone();
+    bitstream_ix = 0;
+    while options.iter().any(|&a| a > 0) {
+        for i in 0..options.len() {
+            if options[i] > 0 {
+                result[i] <<= 1;
+                result[i] += bitstream[bitstream_ix] as u32;
+                options[i] -= 1;
+                bitstream_ix += 1;
+            }
+        }
+    }
+
+    result
+}
+
+fn to_bitplanes_irregular_u32(data: &Vec<u32>) -> (Vec<i32>, Vec<u32>, u8) {
+    let mut block_size: Vec<i32> = data.iter().map(|a| 32 - a.leading_zeros() as i32).collect();
+    let sizes = block_size.clone();
+    let mut results: Vec<u32> = Vec::with_capacity(data.len()); // TODO: Can be optimised by calculating size of vector using `sizes`
+    let mut ix = 0;
+    let mut val = 0;
+    while block_size.iter().any(|&a| a > 0) {
+        block_size = block_size.iter().map(|a| a - 1).collect();
+        for i in 0..block_size.len() {
+            if block_size[i] >= 0 {
+                val <<= 1;
+                ix += 1;
+                let bit = data[i] & (1 << block_size[i]) > 0;
+                val += bit as u32;
+                if ix == 32 {
+                    results.push(val);
+                    val = 0;
+                    ix = 0;
+                }
+            }
+        }
+    }
+    let push = val.leading_zeros() as u8;
+    results.push(val << push);
+
+    return (sizes, results, push);
+}
+
 mod tests {
     #[test]
-    fn test_irregular_values() {
+    fn test_u8() {
         let data: Vec<u8> = vec![41, 213, 5, 234, 165];
         let val = to_bitplanes_unregular(data);
         assert_eq!(val.0, vec![6, 8, 3, 8, 8]);
         assert_eq!(val.1, vec![250, 174, 133, 170, 128]);
         assert_eq!(val.2, 1);
         let result = from_bitplanes_irregular(val.0, val.1, val.2);
+        assert_eq!(data, result);
+    }
+
+    #[test]
+    fn test_u32() {
+        let data: Vec<u32> = vec![41, 213, 5, 234, 165];
+        let val = to_bitplanes_irregular_u32(data);
+        assert_eq!(val.0, vec![6, 8, 3, 8, 8]);
+        assert_eq!(val.1, vec![250, 174, 133, 170, 128]);
+        assert_eq!(val.2, 1);
+        let result = from_bitplanes_irregular_u32(val.0, val.1, val.2);
         assert_eq!(data, result);
     }
 }
