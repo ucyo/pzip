@@ -38,13 +38,23 @@ impl ResidualTrait for ResidualCalculation {
                 let (add, shift) = shift_calculation(*prediction, rctx);
                 let shifted_prediction = apply_shift(*prediction, &add, &shift);
                 let shifted_truth = apply_shift(*truth, &add, &shift);
-                shifted_prediction ^ shifted_truth
+                let result = shifted_prediction ^ shifted_truth;
+                if result.leading_zeros() < (truth ^ prediction).leading_zeros() - 1 {
+                    panic!("")
+                // if result.leading_zeros() < (truth ^ prediction).leading_zeros() - 1 {
+                //     panic!("")
+                // }
+                result
             }
             ResidualCalculation::ShiftedLZC => {
                 let (add, shift) = shift_calculation(*prediction, rctx);
                 let shifted_prediction = apply_shift(*prediction, &add, &shift);
                 let shifted_truth = apply_shift(*truth, &add, &shift);
-                shifted_prediction ^ shifted_truth
+                let result = shifted_prediction ^ shifted_truth;
+                // if result.leading_zeros() < (truth ^ prediction).leading_zeros() - 1 {
+                //     panic!("")
+                // }
+                result
             }
         }
     }
@@ -95,22 +105,24 @@ fn shift_calculation(num: u32, rctx: &mut RContext) -> (bool, u32) {
         let goal = base + delta;
         let shift = num.max(goal) - num.min(goal);
         //info!("Cutting {0} @ {1} shift {2} goal {3} f", num, cut, shift, goal);
-        return (false, shift);
+        return (num <= goal, shift);
     } else {
         let delta = ONE_ZERO_U32 >> (bits - rctx.cut);
         let goal = base + delta;
         let shift = num.max(goal) - num.min(goal);
         //info!("Cutting {0} @ {1} shift {2} goal {3} t", num, cut, shift, goal);
-        return (true, shift);
+        return (num < goal, shift);
     }
 }
 
 fn apply_shift(num: u32, sign: &bool, delta: &u32) -> u32 {
     //info!("Applying {0} with {1} to {2}", *delta, sign, num);
     if *sign {
-        return num + *delta;
+        let result = num + *delta;
+        return result
     } else {
-        return num - *delta;
+        let result = num - *delta;
+        return result
     }
 }
 
