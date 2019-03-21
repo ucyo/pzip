@@ -1,5 +1,5 @@
 
-fn from_bitplanes_for_u8(data: &Vec<u8>) -> Vec<u8> {
+pub fn from_bitplanes_for_u8(data: &Vec<u8>) -> Vec<u8> {
     let mut results: Vec<u8> = vec![0; data.len()];
     for i in 0..(data.len() * 8) {
         let (elem, pow) = (i % 5, 8 - i / 5 - 1);
@@ -11,7 +11,7 @@ fn from_bitplanes_for_u8(data: &Vec<u8>) -> Vec<u8> {
     results
 }
 
-fn to_bitplanes_for_u8(data: &Vec<u8>) -> Vec<u8> {
+pub fn to_bitplanes_for_u8(data: &Vec<u8>) -> Vec<u8> {
     let mut result: Vec<u8> = Vec::new();
     let mut scanned = 0;
     let mut pos = 7;
@@ -33,7 +33,7 @@ fn to_bitplanes_for_u8(data: &Vec<u8>) -> Vec<u8> {
     result
 }
 
-fn from_bitplanes_irregular(sizes: &Vec<i32>, bits: &Vec<u8>, push: &u8) -> Vec<u8> {
+pub fn from_bitplanes_irregular(sizes: &Vec<i32>, bits: &Vec<u8>, push: &u8) -> Vec<u8> {
     let mut bitstream: Vec<bool> = vec![false; bits.len() * 8 as usize];
     let mut bitstream_ix = 0;
     for s in 0..bits.len() {
@@ -63,7 +63,7 @@ fn from_bitplanes_irregular(sizes: &Vec<i32>, bits: &Vec<u8>, push: &u8) -> Vec<
     result
 }
 
-fn to_bitplanes_irregular(data: &Vec<u8>) -> (Vec<i32>, Vec<u8>, u8) {
+pub fn to_bitplanes_irregular(data: &Vec<u8>) -> (Vec<i32>, Vec<u8>, u8) {
     let mut block_size: Vec<i32> = data.iter().map(|a| 8 - a.leading_zeros() as i32).collect();
     let sizes = block_size.clone();
     let mut results: Vec<u8> = Vec::with_capacity(data.len()); // TODO: Can be optimised by calculating size of vector using `sizes`
@@ -91,7 +91,7 @@ fn to_bitplanes_irregular(data: &Vec<u8>) -> (Vec<i32>, Vec<u8>, u8) {
     return (sizes, results, push);
 }
 
-fn from_bitplanes_irregular_u32(sizes: &Vec<i32>, bits: &Vec<u32>, push: &u8) -> Vec<u32> {
+pub fn from_bitplanes_irregular_u32(sizes: &Vec<i32>, bits: &Vec<u32>, push: &u8) -> Vec<u32> {
     let mut bitstream: Vec<bool> = vec![false; bits.len() * 32 as usize];
     let mut bitstream_ix = 0;
     for s in 0..bits.len() {
@@ -121,7 +121,7 @@ fn from_bitplanes_irregular_u32(sizes: &Vec<i32>, bits: &Vec<u32>, push: &u8) ->
     result
 }
 
-fn to_bitplanes_irregular_u32(data: &Vec<u32>) -> (Vec<i32>, Vec<u32>, u8) {
+pub fn to_bitplanes_irregular_u32(data: &Vec<u32>) -> (Vec<i32>, Vec<u32>, u8) {
     let mut block_size: Vec<i32> = data.iter().map(|a| 32 - a.leading_zeros() as i32).collect();
     let sizes = block_size.clone();
     let mut results: Vec<u32> = Vec::with_capacity(data.len()); // TODO: Can be optimised by calculating size of vector using `sizes`
