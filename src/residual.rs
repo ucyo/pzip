@@ -31,6 +31,8 @@ pub enum ResidualCalculation {
     ShiftedLZC,
     // TODO: Choose residual based on experience (past values) instead of LZC or given cut
     // TODO: Choose cut based on length of ones/zeros and(!) decimal point of these positions in floating point representation
+    // TODO: Choose shift in such a way that the former LZC position will be a 1
+    // TODO: Choose shift in such a way that the former LZC position will be a 0
 }
 
 impl ResidualTrait for ResidualCalculation {
