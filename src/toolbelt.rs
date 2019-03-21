@@ -149,6 +149,7 @@ pub fn to_bitplanes_irregular_u32(data: &Vec<u32>) -> (Vec<i32>, Vec<u32>, u8) {
     return (sizes, results, push);
 }
 
+#[allow(unused_imports)]
 mod tests {
     use super::*;
 

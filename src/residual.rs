@@ -3,6 +3,7 @@ const ZERO_ONE_U32: u32 = 1431655765;
 // TODO: Current implmentation only supports u32 values. Add to this u64.
 // const ONE_ZERO_U64: u64 = 12297829382473034410;
 // const ZERO_ONE_U64: u64 = 6148914691236517205;
+use log::{debug, warn};
 
 #[derive(Debug)]
 pub struct RContext {
@@ -39,11 +40,11 @@ impl ResidualTrait for ResidualCalculation {
                 let shifted_prediction = apply_shift(*prediction, &add, &shift);
                 let shifted_truth = apply_shift(*truth, &add, &shift);
                 let result = shifted_prediction ^ shifted_truth;
+                debug!("Panic?\n T{:032b}\n P{:032b}\nST{:032b}\nSP{:032b}\n X{:032b}\nSX{:032b}\n", *truth, *prediction, shifted_truth, shifted_prediction, (truth ^ prediction), result);
+                debug!("{} {}", result.leading_zeros(), (truth ^ prediction).leading_zeros());
                 if result.leading_zeros() < (truth ^ prediction).leading_zeros() - 1 {
-                    panic!("")
-                // if result.leading_zeros() < (truth ^ prediction).leading_zeros() - 1 {
-                //     panic!("")
-                // }
+                    warn!("LZC worse using shift by {}", (truth ^ prediction).leading_zeros() - result.leading_zeros());
+                }
                 result
             }
             ResidualCalculation::ShiftedLZC => {
@@ -51,9 +52,12 @@ impl ResidualTrait for ResidualCalculation {
                 let shifted_prediction = apply_shift(*prediction, &add, &shift);
                 let shifted_truth = apply_shift(*truth, &add, &shift);
                 let result = shifted_prediction ^ shifted_truth;
-                // if result.leading_zeros() < (truth ^ prediction).leading_zeros() - 1 {
-                //     panic!("")
-                // }
+                debug!("Panic?\n T{:032b}\n P{:032b}\nST{:032b}\nSP{:032b}\n X{:032b}\nSX{:032b}\n", *truth, *prediction, shifted_truth, shifted_prediction, (truth ^ prediction), result);
+                debug!("Panic?\n T{}\n P{}\nST{}\nSP{}\n X{}\nSX{}\n", *truth, *prediction, shifted_truth, shifted_prediction, (truth ^ prediction), result);
+                debug!("{} {}", result.leading_zeros(), (truth ^ prediction).leading_zeros());
+                if result.leading_zeros() < (truth ^ prediction).leading_zeros() - 1 {
+                    warn!("LZC worse using shift by {}", (truth ^ prediction).leading_zeros() - result.leading_zeros());
+                }
                 result
             }
         }
@@ -97,31 +101,31 @@ impl ResidualTrait for ResidualCalculation {
 
 fn shift_calculation(num: u32, rctx: &mut RContext) -> (bool, u32) {
     let bits = 32;
-    // let max_value = u32::max_value();
     let base = (num >> rctx.cut) << rctx.cut;
     let last_value = (num >> rctx.cut) & 1;
     if last_value == 1 {
         let delta = ZERO_ONE_U32 >> (bits - rctx.cut);
         let goal = base + delta;
         let shift = num.max(goal) - num.min(goal);
-        //info!("Cutting {0} @ {1} shift {2} goal {3} f", num, cut, shift, goal);
+        debug!("Shift {0:032b} @ {1} by {2:032b} to {3:032b} f", num, rctx.cut, shift, goal);
         return (num <= goal, shift);
     } else {
         let delta = ONE_ZERO_U32 >> (bits - rctx.cut);
         let goal = base + delta;
         let shift = num.max(goal) - num.min(goal);
-        //info!("Cutting {0} @ {1} shift {2} goal {3} t", num, cut, shift, goal);
+        debug!("Shift {0:032b} @ {1} by {2:032b} to {3:032b} t", num, rctx.cut, shift, goal);
         return (num < goal, shift);
     }
 }
 
 fn apply_shift(num: u32, sign: &bool, delta: &u32) -> u32 {
-    //info!("Applying {0} with {1} to {2}", *delta, sign, num);
     if *sign {
         let result = num + *delta;
+        debug!("Apply Shift {0:032b} + {2:032b} = {1:032b}", *delta, result, num);
         return result
     } else {
         let result = num - *delta;
+        debug!("Apply Shift {0:032b} + {2:032b} = {1:032b}", *delta, result, num);
         return result
     }
 }
@@ -159,10 +163,8 @@ mod tests {
             let delta: u32 = rng.gen_range(0,100);
             let sign: bool = rng.gen();
             let truth = if sign {pred + delta} else {pred - delta};
-            // debug!("{:032b} {:032b} {:?} {0} {1} {3}", pred, truth, rctx, u32::max_value());
             let shifted_xor = ResidualCalculation::Shifted.residual(&truth, &pred, &mut rctx);
             let shifted_xor_rev = ResidualCalculation::Shifted.truth(&shifted_xor, &pred, &mut rctx);
-            // debug!("{:032b} {:032b}", shifted_xor, shifted_xor_rev);
             ResidualCalculation::Shifted.update(&truth, &pred, &mut rctx);
             assert_eq!(shifted_xor_rev, truth);
         }
@@ -197,10 +199,8 @@ mod tests {
             let delta: u32 = rng.gen_range(0,100);
             let sign: bool = rng.gen();
             let truth = if sign {pred + delta} else {pred - delta};
-            // debug!("{:032b} {:032b} {:?} {0} {1} {3}", pred, truth, rctx, u32::max_value());
             let shifted_xor = ResidualCalculation::ShiftedLZC.residual(&truth, &pred, &mut rctx);
             let shifted_xor_rev = ResidualCalculation::ShiftedLZC.truth(&shifted_xor, &pred, &mut rctx);
-            // debug!("{:032b} {:032b}", shifted_xor, shifted_xor_rev);
             ResidualCalculation::ShiftedLZC.update(&truth, &pred, &mut rctx);
             assert_eq!(shifted_xor_rev, truth);
         }
