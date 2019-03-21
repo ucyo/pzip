@@ -29,6 +29,7 @@ pub enum ResidualCalculation {
     ExclusiveOR,
     Shifted,
     ShiftedLZC,
+    // TODO: Choose residual based on experience (past values) instead of LZC or given cut
 }
 
 impl ResidualTrait for ResidualCalculation {
