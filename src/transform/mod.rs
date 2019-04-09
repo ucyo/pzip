@@ -70,7 +70,7 @@ impl IntraMapping for Intra {
                     number = number ^ mask;
                     mask = mask >> 1;
                 }
-                num
+                number
             }
         }
     }
@@ -90,7 +90,7 @@ impl IntraMapping for Intra {
                     number = number ^ mask;
                     mask = mask >> 1;
                 }
-                num
+                number
             }
         }
     }
@@ -341,6 +341,19 @@ mod tests {
         let result: Vec<u32> = input.iter().map(|x| Intra::Gray.to_new_u32(*x)).collect();
 
         for (e, r) in expected.iter().zip(result.iter()) {
+            assert_eq!(r, e)
+        }
+    }
+
+    #[test]
+    fn classic_gray_codes_back_forth() {
+        let input: Vec<u32> = vec![15, 5, 6, 3, 1];
+        let result: Vec<u32> = input.iter()
+                                    .map(|x| Intra::Gray.to_new_u32(*x))
+                                    .map(|x| Intra::Gray.from_new_u32(x))
+                                    .collect();
+
+        for (e, r) in result.iter().zip(input.iter()) {
             assert_eq!(r, e)
         }
     }
