@@ -29,6 +29,8 @@ pub enum ResidualCalculation {
     ExclusiveOR,
     Shifted,
     ShiftedLZC,
+    // TODO: Choose a goal for shifted value solely based on the prediction
+    // TODO: Choose a goal for the shifted value with the knowledge that a grey code will be used
     // TODO: Choose residual based on experience (past values) instead of LZC or given cut
     // TODO: Choose cut based on length of ones/zeros and(!) decimal point of these positions in floating point representation
     // TODO: Choose shift in such a way that the former LZC position will be a 1
@@ -38,14 +40,18 @@ pub enum ResidualCalculation {
 impl ResidualTrait for ResidualCalculation {
     fn residual(&self, truth: &u32, prediction: &u32, rctx: &mut RContext) -> u32 {
         match self {
-            ResidualCalculation::ExclusiveOR => *truth ^ *prediction,
+            ResidualCalculation::ExclusiveOR => {
+                let result = *truth ^ *prediction;
+                debug!("Residual (Normal XOR) Truth: {:032b} Prediction: {:032b} XOR: {:032b}", *truth, *prediction, result);
+                result
+            },
             ResidualCalculation::Shifted => {
                 let (add, shift) = shift_calculation(*prediction, rctx);
                 let shifted_prediction = apply_shift(*prediction, &add, &shift);
                 let shifted_truth = apply_shift(*truth, &add, &shift);
                 let result = shifted_prediction ^ shifted_truth;
                 debug!("Panic?\n T{:032b}\n P{:032b}\nST{:032b}\nSP{:032b}\n X{:032b}\nSX{:032b}\n", *truth, *prediction, shifted_truth, shifted_prediction, (truth ^ prediction), result);
-                debug!("{} {}", result.leading_zeros(), (truth ^ prediction).leading_zeros());
+                debug!("New: {} Old: {}", result.leading_zeros(), (truth ^ prediction).leading_zeros());
                 if result.leading_zeros() < (truth ^ prediction).leading_zeros() - 1 {
                     warn!("LZC worse using shift by {}", (truth ^ prediction).leading_zeros() - result.leading_zeros());
                 }
@@ -58,7 +64,7 @@ impl ResidualTrait for ResidualCalculation {
                 let result = shifted_prediction ^ shifted_truth;
                 debug!("Panic?\n T{:032b}\n P{:032b}\nST{:032b}\nSP{:032b}\n X{:032b}\nSX{:032b}\n", *truth, *prediction, shifted_truth, shifted_prediction, (truth ^ prediction), result);
                 debug!("Panic?\n T{}\n P{}\nST{}\nSP{}\n X{}\nSX{}\n", *truth, *prediction, shifted_truth, shifted_prediction, (truth ^ prediction), result);
-                debug!("{} {}", result.leading_zeros(), (truth ^ prediction).leading_zeros());
+                debug!("New: {} Old: {}", result.leading_zeros(), (truth ^ prediction).leading_zeros());
                 if result.leading_zeros() < (truth ^ prediction).leading_zeros() - 1 {
                     warn!("LZC worse using shift by {}", (truth ^ prediction).leading_zeros() - result.leading_zeros());
                 }
