@@ -60,10 +60,10 @@ impl Setup<f64> {
         let results = self
             .predictor
             .consume(&self.source.data, &self.shape, false);
-        let diff: Vec<u64> = results
+        let diff: Vec<u64> = self.source.data
             .iter()
             .map(|a| h.to_u64(*a))
-            .zip(self.source.data.iter().map(|a| h.to_u64(*a)))
+            .zip(results.iter().map(|a| h.to_u64(*a)))
             .map(|(a, b)| k.to_new_u64(a) ^ k.to_new_u64(b))
             .collect();
         let mut tmp: Vec<u8> = Vec::new();
@@ -96,10 +96,10 @@ impl Setup<f32> {
         let results = self.predictor.consume(&self.source.data, &self.shape, ring);
         let mut rctx = RContext::new(cut);
         let mut cctx = CContext::new(1, parts);
-        let diff: Vec<u32> = results
+        let diff: Vec<u32> = self.source.data
             .iter()
             .map(|a| h.to_u32(*a))
-            .zip(self.source.data.iter().map(|a| h.to_u32(*a)))
+            .zip(results.iter().map(|a| h.to_u32(*a)))
             .map(|(a,b)| (k.to_new_u32(a), k.to_new_u32(b)))
             .map(|(a,b)| { let result = (correction.apply_correction(&a, &mut cctx), b); cctx.truth = b; cctx.prediction=a; correction.update(&mut cctx); return result})
             .map(|(a,b)| { let result = r.residual(&a, &b, &mut rctx); r.update(&a, &b, &mut rctx); return result})
