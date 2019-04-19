@@ -179,6 +179,11 @@ impl ByteMapping for Byte {
     }
 }
 
+/// TODO: NoLZC implementation might be wrong due to missing leading zeros if the first
+/// value is kicked out.
+///
+/// e.g. `0000_1000_0111, 0011_0000_1111 => 1111_1000_0111_1000 (wrong; if first 1 skipped)
+///                                      => 0000_1111_1000_0111_1000 (right; if first 1 skipped)
 impl CompactMapping for Compact {
     fn compact_u32(&self, data: Vec<u32>) -> Vec<u32> {
         match self {
