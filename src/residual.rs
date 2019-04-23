@@ -46,6 +46,7 @@ pub enum ResidualCalculation {
     Shifted,
     ShiftedLZC,
     ShiftedGray,
+    // TODO: Simply Difference
     // TODO: Choose a goal for shifted value solely based on the prediction
     // TODO: Choose residual based on experience (past values) instead of LZC or given cut
     // TODO: Choose cut based on length of ones/zeros and(!) decimal point of these positions in floating point representation
