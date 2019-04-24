@@ -26,11 +26,12 @@ pub struct RContext {
     cut: u32,
     truth: u32,
     prediction: u32,
+    prediction_too_low: bool,
 }
 
 impl RContext {
     pub fn new(cut: u32) -> Self {
-        RContext { cut: cut , truth: 0, prediction: 0}
+        RContext { cut: cut , truth: 0, prediction: 0, prediction_too_low: false}
     }
 }
 
@@ -46,6 +47,7 @@ pub enum ResidualCalculation {
     Shifted,
     ShiftedLZC,
     ShiftedGray,
+    Diff,
     // TODO: Simply Difference
     // TODO: Choose a goal for shifted value solely based on the prediction
     // TODO: Choose residual based on experience (past values) instead of LZC or given cut
@@ -85,7 +87,7 @@ impl ResidualTrait for ResidualCalculation {
                     warn!("LZC worse using shift by {}", (truth ^ prediction).leading_zeros() - result.leading_zeros());
                 }
                 result
-            }
+            },
             ResidualCalculation::ShiftedLZC => {
                 let (add, shift) = shift_calculation(*prediction, rctx);
                 let shifted_prediction = apply_shift(*prediction, &add, &shift);
@@ -98,6 +100,9 @@ impl ResidualTrait for ResidualCalculation {
                     warn!("LZC worse using shift by {}", (truth ^ prediction).leading_zeros() - result.leading_zeros());
                 }
                 result
+            },
+            ResidualCalculation::Diff => {
+                (*prediction).max(*truth) - (*prediction).min(*truth)
             }
         }
     }
@@ -124,25 +129,29 @@ impl ResidualTrait for ResidualCalculation {
                 let shifted_truth = *residual ^ shifted_prediction;
                 let truth = apply_shift(shifted_truth, &!add, &shift);
                 truth
+            },
+            ResidualCalculation::Diff => {
+                if rctx.prediction_too_low {
+                    *prediction + *residual
+                } else {
+                    *prediction - *residual
+                }
             }
         }
     }
     fn update(&self, truth: &u32, prediction: &u32, rctx: &mut RContext) {
+        rctx.prediction = *prediction;
+        rctx.truth = *truth;
         match self {
-            ResidualCalculation::ExclusiveOR => {
-                rctx.prediction = *prediction;
-                rctx.truth = *truth;},
-            ResidualCalculation::Shifted => {
-                rctx.prediction = *prediction;
-                rctx.truth = *truth;},
-            ResidualCalculation::ShiftedGray => {
-                rctx.prediction = *prediction;
-                rctx.truth = *truth;},
+            ResidualCalculation::ExclusiveOR => {},
+            ResidualCalculation::Shifted => {},
+            ResidualCalculation::ShiftedGray => {},
             ResidualCalculation::ShiftedLZC => {
-                rctx.prediction = *prediction;
-                rctx.truth = *truth;
                 let new_cut = 32 - (*truth ^ *prediction).leading_zeros();
                 rctx.cut = new_cut.max(4); //TODO: Test influence of minimal cut
+            },
+            ResidualCalculation::Diff => {
+                rctx.prediction_too_low = *prediction < *truth;
             }
         }
     }
