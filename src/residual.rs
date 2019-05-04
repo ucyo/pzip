@@ -1,6 +1,6 @@
 const ONE_ZERO_U32: u32 = 2863311530;
 const ZERO_ONE_U32: u32 = 1431655765;
-const ZERO_ONES: (u32,u32) = (2863311530, 1431655765);
+// const ZERO_ONES: (u32,u32) = (2863311530, 1431655765);
 // const GRAY_ONE_ZERO_U32: u32 = (4294967295 >> 11) + (3 << 30);
 // const GRAY_ZERO_ONE_U32: u32 = (2147483647 >> 11) + (3 << 30);
 // const GRAY_ONE_ZERO_U32: u32 = (3 << 30);
@@ -12,14 +12,14 @@ const GRAY_ZERO_ONE_U32: u32 = 858993459;
 // const ZERO_ONE_U64: u64 = 6148914691236517205;
 use log::{debug, warn};
 
-const BINARY_GOAL: GoalBase = GoalBase { one_zero: 2863311530, zero_one: 1431655765 };
-const GRAY_GOAL: GoalBase = GoalBase { one_zero: 3 << 30, zero_one: 3 << 30 };
+// const BINARY_GOAL: GoalBase = GoalBase { one_zero: 2863311530, zero_one: 1431655765 };
+// const GRAY_GOAL: GoalBase = GoalBase { one_zero: 3 << 30, zero_one: 3 << 30 };
 
-#[derive(Debug)]
-struct GoalBase {
-    one_zero: u32,
-    zero_one: u32
-}
+// #[derive(Debug)]
+// struct GoalBase {
+//     one_zero: u32,
+//     zero_one: u32
+// }
 
 #[derive(Debug)]
 pub struct RContext {
@@ -177,7 +177,7 @@ fn shift_calculation(num: u32, rctx: &mut RContext) -> (bool, u32) {
 }
 
 fn shift_calculation_gray(num: u32, rctx: &mut RContext) -> (bool, u32) {
-    let bits = 32;
+    // let bits = 32;
     let base = (num >> rctx.cut) << rctx.cut;
     let last_value = (num >> rctx.cut) & 1;
     if last_value == 1 {
