@@ -41,7 +41,7 @@ impl IContext {
 /// TODO: Implementation of f64
 pub trait PredictorTrait {
     fn predict(&self, infospace: &Vec<Vec<f32>>, ictx: &mut IContext) -> f32;
-    fn update(&self, information: &f32, ictx: &mut IContext);
+    fn update(&self, information: f32, ictx: &mut IContext);
     // fn consume(&mut self, data: &Vec<T>, shape: &Position, ring: bool) -> Vec<T>;
 }
 
@@ -67,7 +67,7 @@ impl PredictorTrait for Predictor {
             }
         }
     }
-    fn update(&self, information: &f32, ictx: &mut IContext) {
+    fn update(&self, information: f32, ictx: &mut IContext) {
         match self {
             Predictor::Classic => {}
         }
@@ -100,7 +100,7 @@ mod tests {
         for (i,space) in prepared_spaces.into_iter().enumerate() {
             let input = vec![space];
             let prediction = Predictor::Classic.predict(&input, &mut ictx);
-            Predictor::Classic.update(&data[i], &mut ictx);
+            Predictor::Classic.update(data[i], &mut ictx);
             result.push(prediction);
         }
         assert_eq!(result, vec![1f32, 0f32, -1f32, 0f32]);

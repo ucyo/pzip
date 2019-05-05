@@ -246,6 +246,26 @@ pub fn single_neighbours_grouped_no_ring<
     }
 }
 
+pub fn single_neighbours_grouped_no_ring_float<'a>(
+    shape: &'a Coordinate,
+    pos: &'a Vec<Coordinate>,
+    data: &'a Vec<f32>,
+) -> impl Generator<Yield = Vec<f32>, Return = ()> + 'a {
+    move || {
+        let mut iterators: Vec<_> = pos
+            .iter()
+            .map(|p| GeneratorIteratorAdapter(single_neighbours_no_ring(shape, p, data)))
+            .collect();
+        for _ in 0..data.len() {
+            let mut r: Vec<f32> = Vec::new();
+            for iter in iterators.iter_mut() {
+                r.push(iter.next().unwrap())
+            }
+            yield r;
+        }
+    }
+}
+
 pub fn single_neighbours_grouped_with_ring<
     'a,
     T: AddAssign<<T as Mul>::Output> + Copy + Default + Mul,
