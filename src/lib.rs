@@ -102,7 +102,7 @@ impl Setup<f32> {
             .zip(results.iter().map(|a| h.to_u32(*a)))
             .map(|(a,b)| (k.to_new_u32(a), k.to_new_u32(b)))
             .map(|(a,b)| { let result = (correction.apply_correction(&a, &mut cctx), b); cctx.truth = b; cctx.prediction=a; correction.update(&mut cctx); return result})
-            .map(|(a,b)| { let result = r.residual(&a, &b, &mut rctx); r.update(&a, &b, &mut rctx); return result})
+            .map(|(a,b)| { let result = r.residual(a, b, &mut rctx); r.update(a, b, &mut rctx); return result})
             .collect();
         let diff = c.compact_u32(diff);
         let mut tmp: Vec<u8> = Vec::new();
