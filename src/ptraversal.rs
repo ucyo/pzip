@@ -87,7 +87,7 @@ pub fn calculate_offset(shape: &Coordinate, pos: &Coordinate) -> usize {
     result as usize
 }
 
-fn calculate_dims(shape: &Coordinate) -> Coordinate {
+pub fn calculate_dims(shape: &Coordinate) -> Coordinate {
     let dx = 1;
     let dy = dx * shape.x;
     let dz = dy * shape.y;
